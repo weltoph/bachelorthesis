@@ -1,0 +1,778 @@
+\section{Concrete Semantics}
+	Because \emph{\acp{HG}} are used to represent the current state of the heap
+	the semantics of the programming language are modelled in
+	terms of graph transformations. Therefore the different statements of a
+	program are connected with changes of the shape of the hypergraph
+	representing the state of the heap. In the following the necessary graph
+	transformations which are based on presented transformations of \cite{fmsd}
+	for modelling the semantics are presented. This is done in two separate
+	parts where firstly structural changes are discussed and secondly
+	transformations that regard the \emph{\acp{PE}} of the graph.
+\subsection{Graph Transformations}
+\label{sec:graphtrans}
+	The structural graph transformations are presented in the following:
+	\begin{itemize}
+		\item $H[+v]$ adds a new fresh node $v$ to $H$, which is of universally
+			type, thus there are edges attached to for all \emph{selectors}
+		\item $H[\setminus E']$ removes the set of edges $E'$ from $H$
+		\item $H[x\hookrightarrow v]$ connects one $x$ labeled edge with $v$,
+			where $x\in\Var$
+		\item $H[u\xhookrightarrow{s} v]$ connects one $s$ labeled edge
+			from the node $u$ to the node $v$
+		\item $H[+_{\rho}n\rightrightarrows v_1\cdots v_m]$ adds a fresh $n$
+			labeled edge with \emph{permission} $\rho$ connected to
+			$v_1\cdots v_m$
+	\end{itemize}
+	Formally these transformations are defined as follows, where $v$ is a new
+	node and $e,e_{1},\dots$ are new edges:
+	\begin{center}
+		\begin{tabular}{lcl}
+			$H[+v]$ & $=$ &
+				$\begin{aligned}
+					(&V_{H}\uplus\{v\},
+					E_{H}\uplus\{e_{1},\dots,e_{|\mathit{Sel}|}\},\\
+					&\con_{H}\cup\{e_{1}\mapsto vv_{\text{null}},\dots,
+					e_{|\mathit{Sel}|}\mapsto vv_{\text{null}}\},\\
+					&\lab_{H}\cup\{e_1\mapsto\mathit{enum}_{\mathit{Sel}}(1),\dots,
+					e_{|\mathit{Sel}|}\mapsto\mathit{enum}_{\mathit{Sel}}
+					(|\mathit{Sel}|)\},\\
+					&\ext_{H},
+					\perm_{H}\cup\{e_{1}\mapsto\mathit{WR},\dots,
+					e_{|\mathit{Sel}|}\mapsto\mathit{WR}\})\\
+				\end{aligned}$\\
+			\hline
+			$H[\setminus E']$ & $=$ &
+				$\begin{aligned}
+					(&V_H,E_H\setminus E',
+					 \con_H\upharpoonright (E\setminus E'),
+					 \lab_H\upharpoonright (E\setminus E'),\\
+					 &\ext_H,
+					 \perm_H\upharpoonright (E\setminus E'))
+				\end{aligned}$\\
+			\hline
+				$H[x\hookrightarrow u]$ & $=$ &
+				\begin{minipage}{4.5cm}
+					$\begin{aligned}
+						(&V_{H},E_{H},\\
+						 &\mathit{con}_{H}[e\mapsto u],\\
+						 &\mathit{lab}_{H},\mathit{ext}_{H},\mathit{perm}_{H})
+					\end{aligned}$
+				\end{minipage}%
+				\begin{minipage}{5cm}
+					for one $e$ with $\lab_{H}(e) = x$, if such an $e$ exists
+				\end{minipage}\\
+			\hline
+				$H[u\xhookrightarrow{s} u']$ & $=$ &
+				\begin{minipage}{4.5cm}
+					$\begin{aligned}
+						(&V_H,E_H,\\
+						 &\mathit{con}_H[e\mapsto uu'],\\
+						 &\mathit{lab}_H,\mathit{ext}_H,\mathit{perm}_H)
+					\end{aligned}$
+				\end{minipage}%
+				\begin{minipage}{5cm}
+					if there is $e$ with $\lab_{H}(e) = s$ and $\con_{H}(e)(1) = u$
+					and $u,u'\in V_{H}$
+				\end{minipage}
+			\\
+			\hline
+			$H[+_{\rho}n\rightrightarrows v_1\cdots v_n]$ & $=$ &
+			$\begin{aligned}
+				(&V_H,E_H\uplus\{e\},
+				 \con_H\cup\{e\mapsto v_1\cdots v_n\},\\
+				 &\lab_H\cup\{e\mapsto n\},
+				 \ext_H,
+				 \perm_H\cup\{e\mapsto\rho\})
+			\end{aligned}$\\
+		\end{tabular}
+	\end{center}
+	The few more transformation which focus on various aspects of the
+	\emph{permissions} are also introduced below:
+	\begin{itemize}
+		\item $H[\downarrow t]$ denotes that $t\in\PI$
+			does not longer identify a certain process (for example by reassigning
+			$t$)
+		\item $H[\leftarrow T]$ denotes that the \emph{permissions} for
+			$T\in\mathbb{P}(\PI)$ are returned
+		\item $H[t = t']$ is used to describe that for
+			$t,t'\in\PI$ $t$ now identifies the same
+			process as $t'$
+		\item $H[E - T]$ denotes that for the edges in $E$ the token $T$ is added
+			to the $\mathit{PermSet}$ of the \emph{permissions}
+	\end{itemize}
+	The following definitions formalise these intuitions:
+	\begin{definition}[Dropped Thread Variable]
+		For an \emph{\ac{HC}} $H$, $t\in\PI$ let
+		$E_{\text{remove}}\subseteq E_{H}$ be all edges $e$ such that
+		$\lab_{H}(e) = N_{\{t\}}$. Then $H[{\downarrow{t}}]$ denotes the \ac{HC}
+		with:
+		\begin{equation*}
+			H[{\downarrow{t}}]= (V_{H},
+			\underbrace{E_{H}\setminus E_{\text{remove}}}_{=: E'},
+			\con_{H} \upharpoonright E',
+			\lab' \upharpoonright E', \perm'
+			\upharpoonright E')
+		\end{equation*}
+		where $\lab'$ mirrors $\lab_{H}$ except of all edges $e$ such that
+		$\lab_{H} = N_{T}\in\mathbb{T}$ where holds
+		$\lab'(e) = N_{(T\setminus \{t\})}$. And for all edges $e$ with
+		$\perm_{H}(e) = \rho_{e} - \Phi_{e}$ $\perm'(e)$ is defined as follows:
+		\begin{equation*}
+			\perm'(e) =
+			\begin{cases}
+				\mathit{WR^\ast} - \Phi_{e}\setminus\{\{t\}\}&\text{if }
+				\rho_{e}\in\{\mathit{WR},\mathit{WR^\ast}\} \text{ and }
+				\{t\}\in\Phi_{e}\\
+				\mathit{RD^\ast} - \Phi_{e}\setminus\{\{t\}\}&\text{if }
+				\rho_{e}\in\{\mathit{RD},\mathit{RD^\ast}\} \text{ and }
+				\{t\}\in\Phi_{e}\\
+				\rho_{e} - \{T\setminus\{t\}\mid T\in\Phi_{e}\} &\text{otherwise}
+			\end{cases}
+		\end{equation*}
+	\end{definition}
+	Note that all edges labeled with $N_{\{t\}}$ are removed. This is because
+	these edges are the placeholder for the part of the heap that the process
+	$t$ referred to might alter. Thus, in order to ensure data race freedom this
+	part of the heap has to be exclusively accessible by this process. Because
+	the process which operates on this part of the heap can never be rejoined
+	(the token is a singleton set only containing $t$, thus only $t$ refers to
+	this process and is reassigned) all these nodes and edges
+	must never be accessed. To achieve this the placeholder is removed which
+	removes this part of the heap permanently. Furthermore all tokens containing
+	$t$ are updated in order to indicate that $t$ no longer identifies the same
+	process as the other process identifier of this token. For those
+	$\mathit{PermSets}$ that contain the token $\{t\}$ the $\mathit{BasePerm}$
+	is \enquote{starred} in order to indicate that, since there is no further
+	reference to the process the corresponding access token can never be
+	returned. And this implies that the $\mathit{BasePerm}$ can never be fully
+	recovered.
+	\begin{definition}[Returned Token]
+		For $H\in\HC$, $T\in\mathbb{P}(\PI)$
+		\begin{equation*}
+			H[\leftarrow T] = (V_{H}, E_{H}, \con_{H}, \lab_{H}, \ext_{H}, \perm')
+		\end{equation*}
+		with $\perm'(e) = \rho - \Phi\setminus\{T\}$ where
+		$\perm_{H}(e) = \rho -\Phi$.
+	\end{definition}
+	Note that simply the token $T$ is removed from all the $\mathit{PermSets}$.
+	The return of parts of the heap that the process identified by $T$ (or
+	rather all $t\in T$) had exclusive access on is dealt with separately.
+	\begin{definition}[Thread Variable Assignment]
+		For $H\in\HC$ and $t,t'\in\PI$ let
+		$\Phi_{t'} = \{ T\in\Phi \mid t'\in T\}$ denote the set of all
+		tokens in a $\mathit{PermSet}$ $\Phi$ which contain the process
+		identifier $t'$. Then
+		\begin{equation*}
+			H[t = t'] = (V_{H[\downarrow t]}, E_{H[\downarrow t]},
+				\con_{H[\downarrow t]}, \lab',
+				\ext_{H[\downarrow t]}, \perm')
+		\end{equation*}
+		where $\lab'$ mirrors $\lab_{H[\downarrow t]}$ except for all
+		$e\in E_{H[\downarrow t]}$ with $\lab_{H[\downarrow t]}(e) = N_{T}$ and
+		$t'\in T$ where $\lab'(e) = N_{T\cup\{t\}}$. And
+		$\perm'(e)=\rho-(\Phi\setminus\Phi_{t'}\cup
+		\{T\cup\{t\}\mid T\in\Phi_{ t'}\})$ if
+		$\perm_{H[\downarrow t]}(e) = \rho-\Phi$.
+	\end{definition}
+	Note that for the assignment the reassigned identifier is previously
+	dropped since its original value will be lost after the assignment. And
+	the set of tokens for all $\mathit{PermSets}$ that do not contain the
+	process identifier $t'$ are simply preserved. To thoses tokens that contain
+	$t'$ as process identifier $t$ is added since $t$ identifies from now on the
+	same process as $t'$.
+	\begin{definition}[Add Token to Edge]
+		For $H\in\HC$, $T\in\mathbb{P}(\PI)$ and $E\subseteq E_{H}$
+		\begin{equation*}
+			H[E-T] = (V_{H}, E_{H}, \con_{H}, \lab_{H}, \ext_{H}, \perm')
+		\end{equation*}
+		where
+		\begin{equation*}
+			\perm'(e) =
+			\begin{cases}
+				\perm_{H}(e) - T &\text{if }e\in E\\
+				\perm_{H}(e)     &\text{otherwise}\\
+			\end{cases}
+		\end{equation*}
+	\end{definition}
+	The token $T$ is simply added to all $\mathit{PermSets}$ of edges in $E$.
+	\subsection{Semantics}
+	In the following the semantics of programs are defined
+	by graph transformations. Therefore some relations over nodes in
+	\emph{\acp{HG}} are defined as follows:
+	\begin{itemize}
+		\item $v\xhookrightarrow{s}_{\rho}v'$ states that the node $v$ is
+			connected to the node $v'$ by an edge labeled with $s\in\mathit{Sel}$
+			and the permission $\rho$
+		\item $x\hookrightarrow_{\rho}v$ denotes that there is an edge labeled
+			with $x\in\mathit{Var}$ and the permission $\rho$ which is connected
+			to the node $v$
+	\end{itemize}
+	For both relations the permission might be omitted to indicate that one
+	permission $\rho$ exists such that the relation holds.
+
+	At first the semantics of pointer expressions are examined.
+	This is, evaluating a pointer expression under an \emph{\ac{HC}}
+	$H\in\mathit{HC}_\Sigma$ ($\llbracket\cdot\rrbracket_H$). Intuitively, this
+	means that variables are identified with the node the edge labeled with the
+	variable is attached to, the \textbf{null} value is identified with
+	$v_{\text{null}}$ and dereferencing a selector of the object corresponds to
+	following the outgoing edge from a node labeled by this selector. There are
+	two possible errors: firstly, dereferencing anything from the \textbf{null}
+	value and secondly, accessing a selector which is not there. The second case
+	indicates that a selector is accessed although another process demands
+	exclusive access. Because of the universal type of every node the only
+	possible way a selector is absent is because it is hidden behind a
+	placeholder for another process or removed because the reference to the
+	corresponding process is lost. Such an error is indicated by returning an
+	error symbol $\bot$. Formally this leads to the following:
+	\begin{center}
+		\begin{tabular}{lcl}
+			$\llbracket \textbf{null}\rrbracket_H$ & $=$ & $v_{\text{null}}$\\
+			&&\\
+				$\llbracket x\rrbracket_{H}$ & $=$ & $v$\hspace{0.65cm} with
+				$x\hookrightarrow v$\\
+			&&\\
+			$\llbracket x.s\rrbracket$ & $=$ & $
+			\begin{cases}
+				v    &\text{if } \llbracket x\rrbracket_{H}\xhookrightarrow{s} v\\
+				\bot &\text{otherwise}\\
+			\end{cases}
+			$\\
+		\end{tabular}
+	\end{center}
+	Note that for an \emph{\ac{HC}} these semantics are well defined since
+	every node has maximal one outgoing edge for every selector and for every
+	variable exists exactly one edge labeled with it.
+
+	The semantics of conditions are evaluated very intuitively, but where $\bot$
+	propagates strictly, i.e. if there is one expression yielding $\bot$ the
+	whole evaluation becomes $\bot$. Therefore for pointer expressions
+	$p_1,p_2$, and conditions $c_1, c_2$:
+	\begin{center}
+		\begin{tabular}{lcl}
+			$\llbracket p_1 == p_2\rrbracket_H$ & $=$ & $
+			\begin{cases}
+				\bot &\text{if } \llbracket p_1\rrbracket_H = \bot \text{ or }
+					\llbracket p_2\rrbracket_H = \bot \\
+				\mathit{true} &\text{if } \llbracket p_1\rrbracket_H =\llbracket
+					p_2\rrbracket_H\\
+				\mathit{false} &\text{if } \llbracket p_1\rrbracket_H
+					\neq\llbracket p_2\rrbracket_H \\
+			\end{cases}$\\
+			\\
+			$\llbracket p_1\;\text{!=}\; p_2\rrbracket_H$ & $=$ & $
+			\begin{cases}
+				\bot &\text{if } \llbracket p_1\rrbracket_H = \bot \text{ or }
+					\llbracket p_2\rrbracket_H = \bot \\
+				\mathit{false} &\text{if } \llbracket p_1\rrbracket_H=\llbracket
+					p_2\rrbracket_H\\
+				\mathit{true} &\text{if } \llbracket p_1\rrbracket_H
+					\neq\llbracket p_2\rrbracket_H \\
+			\end{cases}$\\
+			\\
+			$\llbracket c_1\;\&\&\; c_2\rrbracket_H$ & $=$ &
+				$\begin{cases}
+					\bot &\text{if } \llbracket c_1\rrbracket_H = \bot \text{ or }
+					\llbracket c_2\rrbracket_H = \bot\\
+					\llbracket c_1\rrbracket_H\land\llbracket c_2\rrbracket_H &
+					\text{otherwise}\\
+				\end{cases}
+					$\\
+			\\
+			$\llbracket c_1 \;\|\; c_2\rrbracket_H$ & $=$ &
+				$\begin{cases}
+					\bot&\text{if }\llbracket c_1\rrbracket_H =\bot\text{ or }
+				\llbracket c_2\rrbracket_H=\bot\\
+					\llbracket c_1\rrbracket_H\lor \llbracket c_2\rrbracket_H
+					&\text{otherwise}\\
+				\end{cases}$\\
+		\end{tabular}
+	\end{center}
+	This gives the basis to define the semantics for the given programming
+	language using a \emph{transition system}:
+	\begin{definition}[Semantics of the Programming Language]
+		The \emph{semantics} of the individual statements are modelled by a
+		\emph{transition relation} of the form
+		$\rhd \subseteq
+		(\mathbb{S}\cup\{\varepsilon\} \times \mathit{HC}_{\Sigma})^{2}$ where
+		$\mathbb{S}$ denotes the language derived by the grammar in
+		section \ref{sec:syntax}.
+	\end{definition}
+	The semantics for the \emph{assignment, allocation, loop, conditional
+	and skip statement} can be given by the following rules, where
+	$v\hookrightarrow_{\rho} -$ abbreviates
+	$\exists v'.v\hookrightarrow_{\rho} v'$ and $v\xhookrightarrow{s}_{\rho} -$
+	is expanded to $\exists v'.v\xhookrightarrow{s}_{\rho} v'$:
+	\begin{center}
+		\label{transitionrules}
+		\begin{prooftree}
+			\AxiomC{$\llbracket P\rrbracket_H\neq\bot$}
+			\AxiomC{$\llbracket x\rrbracket_H\hookrightarrow_{\mathit{WR}} -$}
+			\BinaryInfC{$(x = P, H)\rhd (\varepsilon, H[
+				\llbracket x\rrbracket_H\hookrightarrow
+				\llbracket P\rrbracket_H])$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{$\llbracket P\rrbracket_H\neq\bot$}
+			\AxiomC{$\llbracket x\rrbracket_H\xhookrightarrow{s}_{\mathit{WR}} -$}
+			\BinaryInfC{$(x.s = P, H)\rhd (\varepsilon, H[
+			\llbracket x\rrbracket_H\xhookrightarrow{s}
+		\llbracket P\rrbracket_H])$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{$\llbracket C\rrbracket_H = \text{true}$}
+			\UnaryInfC{$(\text{while}(C) \text{ do } S \text{ done}, H)
+			\rhd (S;\text{while}(C) \text{ do } S \text{ done}, H)$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{$\llbracket C\rrbracket_H = \text{false}$}
+			\UnaryInfC{$(\text{while}(C) \text{ do } S \text{ done}, H)
+			\rhd (\varepsilon, H)$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{$\llbracket C\rrbracket_H = \text{true}$}
+			\UnaryInfC{$(\text{if}(C) \text{ then } S_1
+			\text{ else } S_2 \text{ fi}, H)\rhd(S_1,H)$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{$\llbracket C\rrbracket_H = \text{false}$}
+			\UnaryInfC{$(\text{if}(C) \text{ then } S_1
+			\text{ else } S_2 \text{ fi}, H)\rhd(S_2,H)$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{$\llbracket x\rrbracket_H \hookrightarrow_{\mathit{WR}} -$}
+			\UnaryInfC{$(\text{new}(x), H)\rhd(\varepsilon,H[+v]
+			[x\hookrightarrow v])$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInfC{$(\text{skip}, H)\rhd(\varepsilon,H)$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{$(S_1,H)\rhd(S_{1}', H')$}
+			\UnaryInfC{$(S_1;S_2, H)\rhd(S_{1}';S_2,H')$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{$t,t'\in\PI$}
+			\UnaryInfC{$(t = t', H)\rhd(\varepsilon, H[t = t'])$}
+		\end{prooftree}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInfC{$(\varepsilon;S, H)\rhd(S,H)$}
+		\end{prooftree}
+	\end{center}
+	Note that for operations that change an edge a $\mathit{WR}$ permission on
+	that edge is expected. Furthermore every statement that does not have a
+	fitting transition rule yields explicitly $\bot$.
+	Since fork and join are more complex they are examined in more detail below.
+
+	\subsection{Fork}
+	\label{sec:fork}
+	As described previously fork creates a process and provides it with
+	parameters.This is similar to procedure calls modelled in
+	\cite{ProcedureSummaries}.
+	In the following two types of parameters are distinguished:
+	\begin{itemize}
+		\item \emph{Formal parameters}, which belong to the newly created process
+		\item \emph{Actual parameters}, which belong to the process executing the
+			fork statement
+	\end{itemize}
+	In the call of a fork statement the actual parameters are provided to
+	the newly created process and are identified with formal parameters.
+	Thus the new process initially only knows the nodes identified by the actual
+	parameters and can now access other nodes via the different selectors.
+	The subgraph that can be accessed in this way is called
+	\emph{reachable}. The concept of \emph{reachability} will be later on
+	introduced formally but partially relies on the abstraction that is
+	introduced in Section \ref{sec:abstraction} and is therefore here only given
+	as the set $\reach(v_1,\dots,v_n)$ which denotes all edges that are
+	considered to be reachable from the nodes $v_1,\dots,v_n$.\footnote{actually
+		the set $\reach(v_1,\dots,v_n)$ is a superset of the actual reachable
+		edges, but because it covers at least all actual reachable edges the
+	soundness of the model for the semantics is ensured}
+
+	Reconsider the example from Listing \ref{lst:ExampleProgram} and Figure
+	\ref{fig:BinTreeProgLang} on page \pageref{fig:BinTreeProgLang} where it was
+	observed that \emph{forking} a new process and assigning it to a process
+	identifier potentially causes to lose the possibility to refer to the
+	process the process identifier identified before. In order to model this
+	loss of information the semantics rely on a corresponding graph
+	transformation ($H[\downarrow t]$). Another aspect of the fork
+	statement is that as demonstrated in Figure
+	\ref{fig:BinTreeProgLangPermReplacement} it is possible that a write access
+	ticket is completely transferred to the \emph{forked} process. As mentioned
+	in Section \ref{sec:introduction} the behaviour of processes and especially
+	which parts of the heap the process might alter is defined in a
+	\emph{contract}.
+	These contracts consist of a \emph{precondition}, the set of edges which the
+	process might alter and a \emph{postcondition}.
+	The precondition is the representation of the context from which the process
+	is forked from. The postcondition is the representation of the
+	\emph{heap} that resulted from the execution of the process started from an
+	initial heap state.
+	This initial heap state is obtained by a \emph{transformation} of the
+	precondition which is examined later on.
+	Firstly, as mentioned in Section \ref{sec:ProgLang} it is expected
+	that every process has its own variables as well as process identifier.
+	W. l. o. g. the heap state for every forked process can be described as an
+	\emph{\ac{HC}} over the set $\PI'$ and
+	$\Sigma' = \Sel\uplus\mathbb{T}'\uplus\Var'$ with renaming of variables and
+	process identifier as well as limiting the used variables and process
+	identifier to subsets of $\Var'$ and $\PI'$. Especially it holds that
+	$\Var\cap\Var'=\emptyset$ and $\PI\cap\PI'=\emptyset$.
+	Secondly, the precondition is examined as a representation which is isomorph
+	to the reachable subgraph. Therefore it is assumed that the precondition is
+	a \emph{\ac{HG}} from $\HG$. On the other hand the postcondition is the
+	result of the computation of the forked process and therefore represented as
+	\emph{\ac{HG}} from $\mathit{HG}_{\Sigma'}^{\PI'}$. And this computation of
+	the forked process ensures that only edges from the alternable set are
+	altered. These coherences are illustrated graphical in Figure
+	\ref{fig:forkHeaps}.
+	\begin{figure}[ht]
+		\begin{center}
+			\input{tikz/forkHeaps}
+		\end{center}
+		\caption{Graphical representation of the coherences between precondition,
+		initial heap state, reachable subgraph and postcondition}
+		\label{fig:forkHeaps}
+	\end{figure}
+	For every program the set of contracts is formally described as a function
+	\begin{equation*}
+		\Cont\colon\Proc\rightarrow
+		\mathbb{P}(\HG\times\mathbb{P}(E)\times\mathit{HG}_{\Sigma'}^{\PI'})
+	\end{equation*}
+	where for every program $m$ and every contract $C=(P_C, E_C, Q_C)\in
+	\Cont(m)$ holds that $E\subseteq E^{P_C}_{\mathit{WR}}$, thus the set of
+	alterable edges ($E_{C}$) is a subset of the edges with write access of the
+	precondition. 
+
+	The necessary graph transformations associated with the fork
+	statement are examined in the following. Let $H$ be an \emph{\ac{HG}} and
+	$C = (P_{C}, E, Q_{C})\in\mathit{Cont}(m)$. Let $\ap_{1},\dots,\ap_{n}$ be
+	the nodes that are identified by the actual parameter of the fork statement.
+	This means that for the statement
+	\begin{lstlisting}
+t = fork(m($x_{1},\dots,x_{n}$));
+	\end{lstlisting}
+	with the current heap representation $H$ it holds that
+	$\ap_{i} = \llbracket x_{i}\rrbracket_{H}$ for all $1\leq i\leq n$.
+	Thus the set of reachable edges from the actual parameter is defined as
+	$\reach(\ap_{1},\dots,\ap_{n})$.
+	The actual precondition for the newly forked process is
+	the current \emph{heap} representation reduced to the subgraph which is
+	induced by the reachable part. This subgraph is defined as follows:
+	\begin{definition}[Edge Induced Subgraph]
+		Let $H$ be a  \emph{\ac{HG}} and $E'\subseteq E_{H}$ a set of edges. Then
+		the \emph{subgraph induced by $E'$} is defined as
+		\begin{equation*}
+			H\upharpoonright E' = (\bigcup_{e\in E'}\Lbag\con_{H}(e)\Rbag, E',
+			\lab\upharpoonright E', \con\upharpoonright E',\ext\upharpoonright E',
+			\perm\upharpoonright E')
+		\end{equation*}
+	\end{definition}
+	To find the fitting contract $C$ for the fork statement it is necessary that
+	the reachable subgraph forms the precondition of $C$ and the actual
+	parameters agree with the formal parameters. Let $\fp_{1},\dots,\fp_{n}$
+	denote the nodes of the formal parameters within the precondition of $C$.
+	Then the reachable subgraph is structurally identical to the precondition
+	and the actual parameters agree with the formal parameters. Let $R$ denote
+	the reachable subgraph of a fork statement and $P$ denote the fitting
+	precondition. Then $R$ and $P$ are isomorphic and especially this
+	isomorphism matches formal and actual parameter. Let $R\afiso P$
+	denote the existence of such an isomorphism.
+
+	Once again reconsider the example in Figure \ref{fig:BinTreeProgLangPerm}
+	and let
+	\begin{equation*}
+		C = \left(\parbox{5cm}{\resizebox{5cm}{!}{\input{tikz/precondition}}},
+		\{e_2,e_3,e_4, e_7, e_8\},
+		\parbox{5cm}{\resizebox{5cm}{!}{\input{tikz/postcondition}}}\right)
+	\end{equation*}
+	be a possible contract such that $C\in\Cont(\mathit{traverse})$ and $v_1$ is
+	the only formal parameter. Here $l$ and $r$ abbreviate $\mathit{left}$ and
+	$\mathit{right}$ respectively. Note that $C$ fulfills that the alterable set
+	is a subset of the edges with $\mathit{WR}$ permission of the precondition.
+	Secondly, in the postcondition only edges have been altered which were part
+	of the alterable set (namely $e_3, e_4$). Thirdly, forking by $C$ leads to
+	the replacement seen in Figure \ref{fig:BinTreeProgLangPermReplacement}
+	because the induced subgraph of $\{e_2,e_3,e_4,e_7,e_8\}$ is replaced. As it
+	can be seen in Figure \ref{fig:BinTreeProgLangPermReplacement} the
+	replacement is connected to the node that is identified with $v_1$ and
+	$v_{\text{null}}$.  This is because $v_1$ represents an object which is part
+	of the main process as well as the newly forked one. Such nodes are called
+	\emph{border} nodes and are defined as those nodes that are connected to
+	edges of the alterable set and to edges that are not part of the alterable
+	set. Additionally, the placeholder in Figure
+	\ref{fig:BinTreeProgLangPermReplacement} is also
+	connected to $v_{\text{null}}$, which is generally assumed for all
+	placeholder, thus the heap representation of every process can refer to the
+	same distinguishable \textbf{null} value. The formal definition of the set
+	of border nodes is closely connected to the definition
+	of reachability and is therefore likewise postponed to Section
+	\ref{sec:abstractsemantics}. For now the set of
+	border nodes for a contract $C$ and a heap representation $H$ is denoted by
+	$\border_H(C)$\footnote{just like the reachable set this set is potentially
+	a superset of the actual border nodes}. These border nodes represent the
+	connection points between the heap representation of the main process and
+	the part of the heap of the forked process that can be altered. For joining
+	the process later on it is crucial to identify these nodes in the
+	postcondition. This is achieved by using the mechanism of \emph{external
+	nodes} as introduced for \emph{hyperedge replacement} in Section
+	\ref{sec:hyperedgereplacement}.
+	With these considerations in mind the transformation of the heap
+	representation that models the fork statement can be described.
+	Let therefore
+	\begin{itemize}
+		\item $t$ = \textbf{fork}($m(x_1,\dots,x_n)$);
+		\item with $H$ as the current heap representation,
+		\item $\ap_{i} = \llbracket x_{i}\rrbracket_{H}$ for all $1\leq i\leq n$,
+		\item $(P_{C},E_{C},Q_{C})\in\Cont(m)$,
+		\item $P_{C}\afiso (H\upharpoonright \reach(\ap_{1},\dots,\ap_{n}))$,
+		\item $t\in\PI$,
+		\item $b_{C}(H)$ denote the set of border nodes,
+		\item $\enum_{b_{C}(H)} =
+			\enum_{b_{C}(H)}(1)\dots\enum_{b_{C}(H)}(|b_{C}(H)|)$ is an arbitrary
+			sequence of the border nodes
+	\end{itemize}
+	W. l. o. g. it is assumed that $P_C$ shares nodes and edges with $H$ which
+	can easily achieved by renaming the edges and nodes of $P_C$ according to
+	the existing isomorphism. Then the graph transformation can be given as
+	follows:
+	\begin{equation*}
+		\label{eq:H'}
+		H' = \underbrace{\overbrace{\underbrace{
+		\overbrace{H[\downarrow t]}^{\circled{1}}[\setminus E_{C}]}_{\circled{2}}
+		[+_{\mathit{WR}}N_{\{t\}}\rightrightarrows
+		\enum_{b_{C}(H)}]}^{\circled{3}}[(E_{P}\setminus E_{C})-\{t\}]}_{
+		\circled{4}}
+	\end{equation*}
+	where the different steps state the following:
+	\begin{enumerate}[label=\protect\circled{\arabic*}]
+		\item the process identifier used for the newly forked process is freed
+		\item the edges that the forked process demands write access on are
+			removed from the heap representation
+		\item the formerly removed edges are replaced with an hyperedge
+		\item to all edges that can be read by the newly forked process the
+			appropiate token is added
+	\end{enumerate}
+	Formally this process is therefore described by the following transition
+	rule:
+	\begin{prooftree}
+		\label{prooftree:fork}
+		\AxiomC{$(P_{C}, E_{C}, Q_{C})\in\mathit{Cont}(m)$}
+		\AxiomC{$P_{C}\afiso (H\upharpoonright \reach
+		(\llbracket p_{1}\rrbracket_{H},\dots,\llbracket p_{n}\rrbracket_{H}))$}
+		\BinaryInfC{$(t = \text{fork}(m(p_1,\dots,p_n)), H)\rhd
+			(\varepsilon, H')$}
+	\end{prooftree}
+
+	For the \emph{join} statement some formalisms of \emph{\aclp*{HRG}}, namely
+	\emph{\acl*{HR}} is used and therefore the definition is postponed and
+	\acl*{HR} is introduced before.
+
+\subsection{Hyperedge Replacement}
+\label{sec:hyperedgereplacement}
+	In the following the concept of \emph{\ac{HR}} is presented.
+	\emph{\Ac{HR}} is a  graph transformations which replaces single hyperedges
+	by more complex graphs \cite[p. 104]{HandbookGraphGrammars}. As the fork
+	statement replaces parts of the heap by a single hyperedge in order to
+	\enquote{hide} this subgraph, rendering it unavailable for the main process.
+	Indeed the \enquote{hidden} subgraph still exists within the heap
+	representation of the forked process and can especially be returned by a
+	\emph{join} statement. Therefore a way to re-integrate this subgraph is
+	discussed in the following. A possible way to present rules for substituting
+	hyperedges by hypergraphs are \emph{production rules} which have the form
+	$p\colon X\rightarrow H$. Here $X$ is a label and $H$ a hypergraph and this
+	production rule $p$ can be applied to a hypergraph by removing a
+	$X$-labeled edge and replacing it by the hypergraph $H$. For better
+	understanding the production rule in Figure \ref{fig:productionrule} is
+	considered in the following. On the right hand side of this production rule
+	the nodes marked by $1$ and $2$ are \emph{external nodes} of the hypergraph
+	and their annotation is their position in the sequence $\ext$. For the
+	hyperedges that are labeled with $B$ the numbers denote the position of the
+	nodes in the sequence of connected nodes.
+	\begin{figure}[ht!]
+		\begin{center}
+			\input{tikz/productionrule}
+			\caption{A possible production (permissions are omitted)}
+			\label{fig:productionrule}
+		\end{center}
+	\end{figure}
+	In order to replace for instance such a $B$-labeled hyperedge in an
+	\emph{\ac{HG}} the external nodes of the right hand side of the production
+	rule are identified with the nodes connected to the hyperedge. A simple
+	example (see Figure \ref{fig:replacement}) illustrates such a replacement.
+	Note that the external nodes and the connected nodes that are identified
+	had the same position within the respective sequences.
+	\begin{figure}
+		\begin{center}
+			\input{tikz/replacement}
+			\caption{Illustration of an \acl{HR}}
+			\label{fig:replacement}
+		\end{center}
+	\end{figure}
+	Such a replacement of an hyperedge is called a \emph{derivation} and is
+	formally described as follows:
+	\begin{definition}[Hyperedge Replacement]
+		Let $p$ be a production rule of the form $p\colon X\rightarrow K$,
+		$H\in\mathit{HG}_{\Sigma}$ a \emph{\ac{HG}} with an edge $e\in E_{H}$
+		with $\mathit{lab}_{H}(e)=X$ and $|\ext_K| = |\con_{H}(e)|$. Then
+		$H' = H[e/K]$ is an \emph{\ac{HG}} with:
+		\begin{itemize}
+			\item $V_{H'}=V_{H}\cup(V_{K}\setminus\Lbag \mathit{ext}_{K}\Rbag)$
+			\item $E_{H'}=(E_{H}\setminus\{e\})\cup E_K$
+			\item $\begin{aligned}
+				\mathit{con}_{H'}=\mathit{con}_{H}\upharpoonright(E_{H} \setminus
+				\{e\})\cup((\mathit{id}_{K}&[\ext_{K}(1)\mapsto\con_{H} (e)(1)]
+				\dots\\
+					&[\ext_{K}(|\ext_{K}|)\mapsto\con_{H}(e)(|\ext_{K}|)])\circ
+				\mathit{con}_{K})
+			\end{aligned}$
+			\item $\mathit{lab}_{H'}=\mathit{lab}_{H}\upharpoonright(E_{H}
+				\setminus\{e\})\cup\mathit{lab}_{K}$
+			\item $\mathit{ext}_{H'}=\mathit{ext}_{H}$
+			\item $\mathit{perm}_{H'}=\mathit{perm}_{H}\upharpoonright(E_{H}
+				\setminus\{e\})\cup \mathit{perm}_{K}$
+		\end{itemize}
+	\end{definition}
+	An \emph{\ac{HG}} $H'$ is derived from an \emph{\ac{HG}} $H$ by a production
+	rule $p\colon X\rightarrow K$ (denoted by $H\xRightarrow{p}H'$) if $H'$ is
+	isomorphic to $H[e/K]$ for any edge $e$ labeled with $X$. Furthermore
+	$\Rightarrow^{\ast}$ is the transitive closure of this relation.
+	\subsection{Join}
+	\label{sec:join}
+	Having introduced the mechanism of hyperedge replacement the postponed
+	semantics of the join statement can now be addressed. Therefore
+	it is distinguished between the \emph{joining} process which is the one
+	actually executing the join statement and the \emph{joined} process
+	which is the one that terminated and now returns its permissions.
+	Returning this permissions can be done in two separate steps:
+	Firstly, the permissions for the shared edges, i.e. those edges which
+	$\mathit{BasePerm}$ is either $\mathit{RD}$ or $\mathit{RD^{\ast}}$ for the
+	joined process, are returned.
+	Since these edges are still present in the heap representation of the
+	joining process returning those permissions is a
+	matter of mutating the \emph{\ac{PE}} of the heap representation of
+	the joining process. Secondly, the edges which were allowed to be
+	altered are returned, i.e. edges which $\mathit{BasePerm}$ is either
+	$\mathit{WR}$ or $\mathit{WR^{\ast}}$. This is done by replacing the
+	hyperedge in the joining process which represents this part of the
+	heap by its corresponding \emph{\ac{HG}} of the joined
+	process. This imposes a further restriction to the contracts which have to
+	ensure that the external nodes of the postcondition of the forked process
+	are the same as the border nodes of the placeholder in the heap
+	representation of the forking process. To do so, the sequence of external
+	nodes in the precondition is used to encode which nodes are border nodes
+	and the isomorphism $\afiso$ is restricted to map the border nodes in the
+	heap representation of the forking process to the external nodes in the
+	precondition. Following it is formally described how the initial heap state
+	for the forked process is obtained from the contract
+	$C = (P_C, E_C, Q_C)$:\footnote{which refers to the \emph{transformation} in
+	Figure \ref{fig:forkHeaps}}
+	Let $\ap_{1},\dots,\ap_{n}$ denote the nodes that mark the actual parameters
+	and $\fp_{1},\dots,\fp_{1}$ denote the names of the formal paramters they
+	are matched to (especially $\fp_{i}\in\Sigma'$ for all $1\leq i\leq n$).
+	Furthermore let for all $s\in\Sel$ $s'\in\Sel'$ denote the corresponding
+	selector used to describe the heap states of forked processes,
+	then $I \in\mathit{HG}^{\PI'}_{\Sigma'}$ is the initial heap state for the
+	forked process with:
+	\begin{itemize}
+		\item $V_I = \{v^{I}_{v'} \mid v'\in V_{P_{C}}\}$
+		\item $E_I = \{e^{I}_{e'} \mid e'\in E_{P_{C}}\} \cup
+			\{e_{\fp_i}\mid 1\leq i\leq n\}\cup\{e_{v}\mid v\in(\Var'\setminus
+			\{\fp_{i}\mid 1\leq i\leq n\})\}$
+		\item $\con_{I} = \{v'\mapsto v^{I}_{v'}\mid v'\in V_{P_{C}}\}
+			\circ\con_{P_{C}}\cup \{e_{\fp_i}\mapsto\ap_i\mid 1\leq i\leq n\}
+			\cup\{e_{v}\mapsto v_{\text{null}}\mid v\in(\Var'\setminus
+			\{\fp_{i}\mid 1\leq i\leq n\})\}$
+		\item $\lab_{I} = \{e_{\fp_{i}}\mapsto\fp_{i}\mid 1\leq i\leq n\}
+			\cup\{e\mapsto s'\mid\lab_{P_{C}}(e) = s\}\cup\{e_{v}\mapsto v\mid
+			v\in(\Var'\setminus \{\fp_{i}\mid 1\leq i\leq n\})\}$
+		\item $\ext_I = \{v^{I}_{v'}\mapsto v'\mid v'\in V_{P_{C}}\}
+			(\enum_{\border_{P_C}}(1)\dots\enum_{\border_{P_C}}(|\border_{P_{C}}
+			(C)|))$
+		\item $\perm_{I} = \{e\mapsto\mathit{WR}\mid e\in E_{C}\}\cup
+			\{e\mapsto\mathit{RD}\mid e\in E_{P_{C}}\setminus E_{C}\}\cup
+			\{e_{v}\mapsto\mathit{WR}\mid v\in(\Var'\setminus \{\fp_{i}\mid 1\leq
+				i\leq n\})$
+	\end{itemize}
+	Note that actually only the selectors are renamed and variables introduced
+	for the formal parameters that point to the nodes the actual parameters
+	pointed to in the fork statement, also all other variables of $\Var'$ are
+	introduced and initially point to $v_{\text{null}}$. Furthermore the
+	external nodes of the
+	initial heap state are used to mark the border nodes in order to ensure that
+	the \enquote{$\mathit{WR}$-part} of the postcondition agrees on the shared
+	objects when it is joined. At last, all permissions in the initial heap
+	state are simple and grant those access tickets that the contract demands.
+	From this initial heap state the execution of the forked program starts.
+
+	For both steps of returning permissions for the join statement it is
+	important to determine if all
+	permissions are returned which were derived when the process was forked.
+	This is not the case for all edges which \emph{\acp{PE}} are not
+	\emph{simple} or which $\mathit{BasePerm}$ is \enquote{starred} (thus
+	$\mathit{WR^\ast}$ or $\mathit{RD^\ast}$). These permissions are
+	unrecoverably lost and this propagates strictly to the permissions of the
+	heap representation of the joining process.
+	
+	For returning the read permissions it is avoided to match the
+	edges from the heap representation of the joining and
+	joined process since it imposes further difficulties later on.
+	Therefore the minimal permission is returned: for all
+	edges of the joining process from which permissions were 
+	derived to the joined process the $\mathit{BasePerm}$ is 
+	\enquote{starred} if there is \emph{any} edge in the postcondition
+	for which the permission cannot be completely returned.
+
+	Returning the write permissions is done by simply applying a
+	production rule to the hyperedge of the joining process that
+	represents the borrowed part. Let now
+	$C = (P_{C}, E_{C}, Q_{C})\in\Cont(m)$ be the contract by which
+	the joined process was forked (note that this contract has to be the same
+	as for the fork statement that created the process which is re-joined now,
+	in order to save the contract for matching it from fork to join statement
+	it can be e. g. attached to the placeholder) and $T_t$ the set of all
+	aliases of the process identifier $t$ that is used in the join statement.
+	Further the following few definitions are used for convenience:
+	\begin{equation*}
+		\label{eq:joinH}
+		Q'_{1}=Q_{C}[\downarrow\mathit{enum}_{\mathit{Var}'_{\text{thread}}}(1)]
+		\dots[\downarrow\mathit{Var}'_{\text{thread}}
+		(|\mathit{Var}'_{\text{thread}}|)]
+	\end{equation*}
+	Note that for $Q'_{1}$ all \emph{\ac{PE}} are \emph{simple} and every not
+	yet returned permission caused the $\mathit{BasePerm}$ to be
+	\enquote{starred}.
+	\begin{equation*}
+		Q'_{2} = Q'_{1}[\setminus (E^{Q'_{1}}_{\mathit{RD}}\cup
+			E^{Q'_{1}}_{\mathit{RD^{\ast}}})]
+	\end{equation*}
+	$Q'_{2}$ represents the state where the heap representation of the
+	joined process is reduced to the edges of the alterable set.
+	Now two transition rules are used to model the semantics of the join
+	statement where the first one describes the case with lost read
+	permissions and the second one describes the case where all
+	read permissions can be completely returned:
+	\begin{prooftree}
+		\label{prooftree:join}
+		\AxiomC{$E^{Q'_{1}}_{\mathit{RD*}}\neq\emptyset$}
+		\AxiomC{$H[\downarrow T_{t}]\xRightarrow{N_{T_{t}}\rightarrow Q'_{2}}H'$}
+		\BinaryInfC{$(\text{join}(t), H)\rhd(\varepsilon,H')$}
+	\end{prooftree}
+	Note that $H[\downarrow T_{t}]$ is used which successively drops the process
+	identifier in the token $T_{t}$
+	\begin{equation*}
+		\text{\enquote{$H[\downarrow T_{t}] = H[\downarrow\enum_{T_{t}}(1)]\dots
+		[\downarrow\enum_{T_{t}}(|T_{t}|)]$}}
+	\end{equation*}
+	but preserves $N_{T_{t}}$ in order to replace it by the given production
+	rule.
+	\begin{prooftree}
+		\AxiomC{$E^{H'_{1}}_{\mathit{RD*}}=\emptyset$}
+		\AxiomC{$H[\leftarrow T_{t}]\xRightarrow{N_{T_{t}}\rightarrow Q'_{2}}H'$}
+		\BinaryInfC{$(\text{join}(t), H)\rhd(\varepsilon,H')$}
+	\end{prooftree}
+	This concludes the modelling of the semantics of the presented programming
+	language and in the following it is dealt with abstraction techniques to
+	approach potentially unbounded structures.

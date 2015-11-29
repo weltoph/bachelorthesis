@@ -1,0 +1,12 @@
+\begin{tikzpicture}
+	\node[node] (v1) {$v_{1}$};
+	\node[he, right=of v1] (L) {$L$};
+	\node[node, right=of L] (v2) {$v_{2}$};
+	\node[node, below=of L] (null) {$v_{\text{null}}$};
+
+	\draw[connector] (L)  to node[above]{$1$} (v1)  ;
+	\draw[connector] (L)  to node[above]{$2$} (v2)  ;
+	\draw[sel]       (v1) to node[left] {$p$} (null);
+	\draw[sel]       (v2) to node[right]{$n$} (null);
+
+\end{tikzpicture}

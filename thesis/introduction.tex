@@ -1,0 +1,58 @@
+\section{Introduction}
+\label{sec:introduction}
+	Nowadays, software relies on the use of pointers. In order to make use of
+	unbounded data structures these are modelled within the dynamically
+	allocateable part of the memory, the \emph{heap}. As previous research has
+	shown it is a viable approach to analyse pointer programs by representing
+	the structure of the heap as \emph{hypergraph} \cites{InformalGraphGrammars}
+	{InductivePredicates}{ProcedureSummaries}. This analysis focuses on
+	different problems in the use of pointer in software, most notably the
+	dereferencation of null pointers and memory leaks
+	\cites{InformalGraphGrammars}{fmsd}.  Furthermore in order to obtain a
+	finite representation of the unbounded data structures \emph{hyperedge
+	replacement grammars} are used for abstraction.
+	Those hyperedge replacement grammars allow to represent parts of the heap
+	that can grow unboundedly in a finite manner but also to concretise
+	abstracted parts on demand. This modelling technique is
+	already used as basis for computational analysis by the tool Juggrnaut
+	\cite{fmsd}. By now these techniques operate mainly on sequential execution
+	of programs. Another possible approach on analysing pointer programs which
+	relies on formulating structural properties of the heap in logical formulae
+	is \emph{separation logic} \cite{PrimerSeparationLogic}. Because in
+	separation logic the heap is
+	separated in different parts which are reasoned about individually this
+	approach has proven well suited for analysis of concurrent programs
+	\cites{SeparationLogic}{AbstractSeparationLogic}{LocalReasoning}. This work
+	is a contribution in widening the analysis technique of a graph-based
+	representation to parallel executing programs. By approaching parallelism
+	new challenges arise, most importantly \emph{data races}. Data races are
+	situations where multiple processes access data at the same time and the
+	result of these actions depend on each other. If data races occur all
+	possible interleavings of the executions have to be examined which causes
+	the possible states that have to be analysed to grow uncontrollably large.
+	This is often
+	referred to as \emph{state space explosion} e.g. in \cite[pp. 77-80]
+	{PrinciplesOfModelChecking}. In order to avoid state space explosion it is
+	possible to prove the absence of data races which resolves the dependency of
+	the actions and allows to reduce the number of states that have to be
+	examined. In separation logic this is approached by incorporating permission
+	accounting into the formulae that describe the heap states. This permission
+	accounting is a way to distinguish read and write access and can be used to
+	prove data race freedom. As suggested e.g. in \cite{InductivePredicates} and
+	\cite{ProcedureSummaries} this approach can be examined for graph-based
+	representation of the heap. This is the  main contribution of this paper:
+	incorporating permissions into the hypergraphs that are used to model the
+	state of the heap and introducing a mechanism of parallelism by adding
+	fork and join statements to the examined programming language. Where fork
+	starts new processes and join
+	synchronises other processes by waiting for their termination. This is
+	explored in \cite{MultithreadedJavaPrograms} with some formal effort. The
+	goal of the presented analysis is among other things to provide a more
+	intuitive approach by graph-based representation of the heap. For the fork
+	and join statemant appropiate semantics in the sense of graph
+	transformations are defined. Central results of this work are the proof that
+	the used abstraction via hyperedge replacement grammars support the
+	incorporation of permissions and that the analysed states ensure data race
+	freedom. For this result it is generally assumed that the behaviour of
+	forked processes is determined by given contracts, similar to those that are
+	automatically generated in \cite{ProcedureSummaries}.

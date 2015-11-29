@@ -1,0 +1,215 @@
+%
+%reference: http://texwelt.de/wissen/fragen/3772/wie-gehe-ich-eine-bachelorarbeit-mit-latex-an
+%
+
+\documentclass[twoside]{scrartcl}
+
+
+\usepackage[utf8]{inputenc}
+%\usepackage{geometry}
+\usepackage{fixme}
+\usepackage{csquotes}
+\usepackage{mdframed}
+\usepackage{tensor}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{acro}
+\usepackage{stmaryrd}
+\usepackage{url}
+\usepackage{tikz}
+\usepackage{mathtools}
+\usepackage{bussproofs}
+\usepackage{syntax}
+\usepackage[inline]{enumitem}
+\usepackage[style=numeric,backend=bibtex]{biblatex}
+\usepackage[final]{listings}
+%\usepackage{hyperref}
+
+\bibliography{bibliography}{}
+
+\lstset{
+	numbers=left,
+	frame=lrtb,
+	emph={while,fork,null,do,done,if,then,else,fi,skip,new,join},
+	emphstyle=\textbf,
+	mathescape
+}
+
+% -- tikz settings: --
+\input{tikzsettings}
+
+%operator:
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+
+\newcommand{\Emb}{\mathit{Emb}}
+\newcommand{\out}{\mathit{out}}
+\newcommand{\fpHRG}{\mathit{fpHRG}_{\Sigma_{N}}^{\PI}}
+\newcommand{\reach}{\mathit{reach}}
+\newcommand{\FP}{\mathit{FP}}
+\newcommand{\ap}{\mathit{ap}}
+\newcommand{\fp}{\mathit{fp}}
+\newcommand{\Proc}{\mathit{Proc}}
+\newcommand{\emb}{\mathit{emb}}
+\newcommand{\PI}{\mathit{Var}_{\text{process}}}
+\newcommand{\rea}{\mathit{rea}}
+\newcommand{\btr}{\blacktriangleright}
+\newcommand{\type}{\mathit{type}}
+\newcommand{\abs}{\mathit{abs}}
+\newcommand{\br}{\mathit{br}}
+\newcommand{\RB}{\mathit{RB}}
+\newcommand{\NT}{\mathit{NT}}
+\newcommand{\lhs}{\mathit{lhs}}
+\newcommand{\rhs}{\mathit{rhs}}
+\newcommand{\Tok}{\mathit{Tok}}
+%\newcommand{\path}{\mathit{path}}
+\newcommand{\Path}{\mathit{Path}}
+\newcommand{\CPath}{\mathit{CPath}}
+\newcommand{\AHC}{\mathit{AHC}_{\Sigma_{N}}^{\PI}}
+\newcommand{\rk}{\mathit{rk}}
+\newcommand{\con}{\mathit{con}}
+\newcommand{\lab}{\mathit{lab}}
+\newcommand{\ext}{\mathit{ext}}
+\newcommand{\perm}{\mathit{perm}}
+\newcommand{\HRG}{\mathit{HRG}_{\Sigma_{N}}^{\PI}}
+\newcommand{\DSG}{\mathit{DSG}_{\Sigma_{N}}^{\PI}}
+\newcommand{\HAG}{\mathit{HAG}_{\Sigma_{N}}^{\PI}}
+\newcommand{\PES}{\mathit{PES}_{\PI}}
+\newcommand{\HC}{\mathit{HC}_{\Sigma}^{\PI}}
+\newcommand{\HCN}{\mathit{HC}_{\Sigma_{N}}^{\PI}}
+\newcommand{\HG}{\mathit{HG}_{\Sigma}^{\PI}}
+\newcommand{\HGN}{\mathit{HG}_{\Sigma_{N}}^{\PI}}
+\newcommand{\aHG}{\mathit{HG}_{\Sigma_{N}}^{\PI}}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\newcommand{\Sel}{\mathit{Sel}}
+\newcommand{\Var}{\mathit{Var}}
+\newcommand{\enum}{\mathit{enum}}
+\newcommand{\Cont}{\mathit{Cont}}
+\newcommand{\afiso}{\tensor[_\ap]{\cong}{_\fp}}
+\newcommand{\border}{\mathit{border}}
+\newcommand{\img}{\mathit{img}}
+\newcommand{\off}{\mathit{offspring}}
+
+
+
+%environments:
+\newtheorem{defi}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{claim}{Claim}[section]
+
+\newenvironment{definition}
+	{\begin{mdframed}[nobreak=true]\begin{defi}}
+	{\end{defi}\end{mdframed}}
+
+%acronyms:
+\DeclareAcronym{HAG}{
+	short = HAG,
+	long  = Heap Abstraction Grammar
+}
+\DeclareAcronym{AHC}{
+	short = AHC,
+	long  = admissible heap configuration
+}
+\DeclareAcronym{DSG}{
+	short = DSG,
+	long  = data structure grammar
+}
+\DeclareAcronym{HG}{
+	short = HG,
+	long  = hypergraph
+}
+
+\DeclareAcronym{HC}{
+	short = HC,
+	long  = heap configuration
+}
+
+\DeclareAcronym{HRG}{
+	short = HRG,
+	long  = hyperedge replacement grammar
+}
+
+\DeclareAcronym{fpHRG}{
+	short = fpHRG,
+	long  = fully permissive HRG
+}
+
+\DeclareAcronym{HR}{
+	short = HR,
+	long  = hyperedge replacement
+}
+
+\DeclareAcronym{PE}{
+	short = PE,
+	long  = permission expression
+}
+
+\DeclareAcronym{PES}{
+	short = PES,
+	long  = permission expression set
+}
+
+\DeclareAcronym{PM}{
+	short = PM,
+	long  = permission model
+}
+
+\DeclareAcronym{HM}{
+	short = HM,
+	long  = hypergraph morphismen
+}
+
+\begin{document}
+\input{title}
+\cleardoublepage
+\pagestyle{empty}
+\begin{abstract}
+	\section*{Abstract}
+	This paper presents a graph-based modelling of the structure of
+	concurrent heap manipulating programs. It introduces a programming
+	language that allows parallel execution in the means of fork and join.
+	The semantics of the programming language is presented in terms of
+	hypergraphs transformations. The main results are the abstraction of the
+	heap structure by hyperedge replacement grammars
+	which is proven to be a correct overapproximation
+	and that the presented analysis can prove data race free executions of
+	programs.
+\end{abstract}
+\vfill
+\input{selbststaendigkeit}
+\newpage
+\cleardoublepage
+\tableofcontents
+\newpage
+\pagestyle{plain}
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\input{introduction}
+\newpage
+\input{preliminaries}
+\newpage
+\input{programminglang}
+\newpage
+\input{permissionmodel}
+\newpage
+\input{hypergraphs}
+\newpage
+\input{concretesemantics}
+\newpage
+\input{replacementgrammars}
+\input{abstraction}
+\newpage
+\input{dataracefreedom}
+\newpage
+\input{conclusion}
+\input{futurework}
+
+\newpage
+\printbibliography
+\end{document}

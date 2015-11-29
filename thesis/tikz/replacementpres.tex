@@ -1,0 +1,53 @@
+\begin{tikzpicture}
+	%graph
+	\node[node] (s1) {};
+	\node[node, below right=of s1] (s3) {};
+	\node[node, node distance=2 and 2, below left =of s3] (s2) {$v_{\text{null}}$};
+	\node[he, below=of s3, label={[]0:$\mathit{RD}-\{\{t_4\}\}$}] (e3) {$B$};
+
+	\draw[sel] (s1) to node[left ]{$l_{\mathit{RD}-\{\{t_1,t_2\}, \{t_3\}\}}$} (s2);
+	\draw[sel] (s1) to node[right]{$r_{\mathit{RD}-\{\{t_1,t_2\}, \{t_3\}\}}$} (s3);
+	\draw[connector] (e3) to node[above]{2} (s2);
+	\draw[connector] (e3) to node[right]{1} (s3);
+
+	%rhs of production rule:
+	\visible<2->{\node[node, below=of e3, ext] (v1) {1};
+	\node[node, below left=of v1] (v2) {};
+	\node[node, below right=of v1] (v3) {};
+	\node[he, below=of v2] (e1) {$B$};
+	\node[he, below=of v3] (e2) {$B$};
+	\node[node, left=of e1] (v4) {$v_{\text{null}}$};
+
+	\draw[sel] (v1) to node[left ]{$l$} (v2);
+	\draw[sel] (v1) to node[right]{$r$} (v3);
+	\draw[connector] (e1) to node[right]{1} (v2);
+	\draw[connector] (e1) to node[above]{2} (v4);
+	\draw[connector, bend left] (e2) to node[above]{2} (v4);
+	\draw[connector] (e2) to node[right]{1} (v3);
+
+	%connection
+	\draw[dashed, ->, bend right=45] (v1) to (s3);
+	\draw[dashed, ->, bend left=45]  (v4) to (s2);}
+
+	%leadsto symbol
+	\visible<3->{\node[above right=1.2cm and 0.2cm of v3] {$\Rightarrow$};
+
+	%result
+		\node[node] (null) [right=3 and 3 of v3] {$v_{\text{null}}$};
+	\node[he] (e1) [right=1.2 and 1.2 of null, label={[]65:$\mathit{RD}-\{\{t_4\}\}$}] {$B$};
+	\node[node, above=of e1] (root-right-left) {};
+	\node[node, above right=1cm and 0.5cm of root-right-left](root-right){};
+	\node[node, below right=1cm and 0.5cm of root-right](root-right-right){};
+	\node[node, above left=of root-right] (root) {};
+	\node[he, below=of root-right-right, label={[]0:$\mathit{RD}-\{\{t_4\}\}$}] (e2) {$B$};
+
+	\draw[sel] (root) to node[right]{$r_{\mathit{RD}-\{\{t_1,t_2\}, \{t_3\}\}}$} (root-right);
+	\draw[sel] (root) to node[left ]{$l_{\mathit{RD}-\{\{t_1,t_2\}, \{t_3\}\}}$} (null);
+	\draw[sel] (root-right) to node[left ]{$l_{\mathit{RD}-\{\{t_4\}\}}$} (root-right-left);
+	\draw[sel] (root-right) to node[right]{$r_{\mathit{RD}-\{\{t_4\}\}}$} (root-right-right);
+	\draw[connector] (e1) to node[left ]{1} (root-right-left);
+	\draw[connector] (e2) to node[right]{1} (root-right-right);
+	\draw[connector] (e1) to node[above]{2} (null);
+	\draw[connector, bend left] (e2) to node[above]{2} (null);}
+
+\end{tikzpicture}

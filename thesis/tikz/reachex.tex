@@ -1,0 +1,10 @@
+\begin{tikzpicture}
+	\node[he] (lhs) {$T$};
+	\node[node, ext, right=1cm and 2cm of lhs] (v1) {$1$};
+	\node[node, right=of v1] (v2) {};
+	\node[node, ext, right=of v2] (v3) {$2$};
+
+	\draw[->, very thick, shorten >=0.2cm, shorten <=0.2cm] (lhs) to (v1);
+	\draw[sel] (v1) to node[above]{$p$} (v2);
+	\draw[sel] (v3) to node[above]{$p$} (v2);
+\end{tikzpicture}

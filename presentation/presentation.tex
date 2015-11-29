@@ -1,0 +1,826 @@
+\documentclass{beamer}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+\usepackage{mdframed}
+\usepackage{tensor}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{acro}
+\usepackage{stmaryrd}
+\usepackage{url}
+\usepackage{tikz}
+\usepackage{mathtools}
+\usepackage{bussproofs}
+\usepackage{syntax}
+\usepackage[en-GB]{datetime2}
+\usepackage[style=numeric,backend=bibtex]{biblatex}
+\usepackage[final]{listings}
+\usepackage{geometry}
+
+\bibliography{bibliography}
+
+\usetheme{m}
+
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+
+\lstset{
+	frame=lrtb,
+	emph={while,fork,null,do,done,if,then,else,fi,skip,new,join},
+	emphstyle=\textbf,
+	mathescape,
+	tabsize=3,
+}
+
+\newtheorem{defi}{Definition}
+\renewenvironment{definition}
+	{\begin{mdframed}[nobreak=true]\begin{defi}}
+	{\end{defi}\end{mdframed}}
+
+
+% -- tikz settings: --
+\input{tikzsettings}
+
+\newcommand\irregularcircle[2]{% radius, irregularity
+	let \n1 = {(#1)+rand*(#2)} in
+	+(0:\n1)
+	\foreach \a in {15,30,...,350}{
+		let \n1 = {(#1)+rand*(#2)} in
+		-- +(\a:\n1)
+	} -- cycle
+}
+
+
+\input{operators}
+
+\newcommand\blfootnote[1]{%
+	\begingroup
+	\renewcommand\thefootnote{}\footnote{#1}%
+	\addtocounter{footnote}{-1}%
+	\endgroup
+}
+
+%acronyms:
+\input{acronyms}
+
+
+\title{Thread-Modular Analysis of Heap-Manipulating Programs}
+\subtitle{Bachelor Colloquium}
+\date{\DTMdisplaydate{2015}{8}{27}{-1}}
+\author{Christoph Welzel}
+\institute{Lehrstuhl für Informatik 2}
+
+\metroset{everytitleformat=regular, numbering=fraction}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+%
+\begin{frame}
+	\frametitle{Introduction}
+	\begin{columns}
+		\column{0.5\textwidth}
+		\begin{itemize}
+			\item software relies on:
+				\begin{itemize}
+					\item dynamic allocation of objects
+					\item pointer
+				\end{itemize}
+			\item to build data-structures:
+				\begin{itemize}
+					\item binary trees
+					\item (doubly, singly) linked lists
+					\item \dots
+				\end{itemize}
+			\item[$\Rightarrow$] representation by graphs
+		\end{itemize}
+		\onslide<2-3>{\alt<2>{
+			\column{0.5\textwidth}
+			\resizebox{\textwidth}{!}{\input{tikz/BinTreeEx}}
+		}{
+			\column{0.5\textwidth}
+			\begin{itemize}
+				\item parallel execution
+					\begin{itemize}
+						\item \emph{Go}:
+							\enquote{explicit support for concurrent programming}
+						\item possible data races
+					\end{itemize}
+			\end{itemize}
+	}}
+	\end{columns}
+	\blfootnote{\cite{golang}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Contribution}
+	\begin{itemize}
+		\item analysis to work on graph representation with explicit support for
+			parallel execution
+			\begin{itemize}
+				\item \alert<2>{ensures data race freedom}
+				\item \alert<3>{ensures absence of null pointer dereferences}
+				\item \alert<4>{enables checking correctness}
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Table of Contents}
+	\tableofcontents
+\end{frame}
+
+\metroset{numbering=none}
+\section{Programming Language}
+
+\metroset{numbering=fraction}
+
+\begin{frame}
+	\frametitle{Features}
+	\begin{columns}
+		\column{0.5\textwidth}
+		\begin{itemize}
+			\item \emph{Java}-like
+				\begin{itemize}
+					\item (implicitly) garbage collected
+					\item object oriented
+					\item objects are universally typed
+				\end{itemize}
+		\end{itemize}
+		\begin{itemize}
+			\item parallel execution
+				\begin{itemize}
+					\item \emph{fork}: implicit \emph{process} creation
+					\item \emph{join}: synchronisation on termination (optional)
+				\end{itemize}
+		\end{itemize}
+		\column{0.5\textwidth}
+		\onslide<2>{\scalebox{0.7}{\input{tikz/seqdia}}}
+	\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Syntax}
+	Context:
+	\begin{columns}
+		\column{0.5\textwidth}
+			\begin{itemize}
+				\item $\Var$ - Variables
+				\item $\Sel$ - Selectors
+			\end{itemize}
+		\column{0.5\textwidth}
+			\begin{itemize}
+				\item $\Proc$ - Programs
+				\item $\PI$ - Process Identifier
+			\end{itemize}
+	\end{columns}
+	\setlength{\grammarindent}{2cm}
+	\begin{grammar}
+	<P> ::= \textbf{null} | $x$ | $x.s$
+
+	<S> ::= $x$=<P> | $x.s$ = <P> | \textbf{new}($x$) |
+	$t$=\textbf{fork}$(m(x_1,\dots,x_n))$ | join($t$) | $t_1 = t_2$
+	\end{grammar}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Example}
+	\begin{columns}
+		\column{0.55\textwidth}
+		\begin{lstlisting}
+while($\mathit{curr.left}$ != null) do
+	$\mathit{tmp}$ = $\mathit{curr.right}$;
+	$t$ = fork($\mathit{traverse}$($\mathit{tmp}$));
+	$\mathit{curr}$ = $\mathit{curr.left}$;
+done;
+$\mathit{tmp} = \mathit{curr.right}$;
+$t$ = fork($\mathit{traverse}$($\mathit{tmp}$));
+$\mathit{tmp} = $ null;
+join($t$);
+$\mathit{curr.left} = \mathit{curr.right}$;
+$\mathit{curr.right} = $ null;
+			\end{lstlisting}
+		\column{0.45\textwidth}
+		\only<1>{\begin{itemize}
+				\item $\Proc = \{ \mathit{traverse} \}$
+				\item $\Sel  = \{ \mathit{left}, \mathit{right} \}$
+				\item $\Var  = \{ \mathit{curr}, \mathit{tmp}   \}$
+				\item $\PI   = \{ t \}$
+			\end{itemize}
+		}
+		\only<2>{
+			\resizebox{\textwidth}{!}{\input{tikz/BinTreeEx1}}
+		}
+		\only<3>{
+			\resizebox{\textwidth}{!}{\input{tikz/BinTreeEx2}}
+		}
+		\only<4>{
+			\resizebox{\textwidth}{!}{\input{tikz/BinTreeEx3}}
+		}
+		\only<5>{
+			\resizebox{\textwidth}{!}{\input{tikz/BinTreeEx4}}
+		}
+		\end{columns}
+\end{frame}
+
+\section{Permission Model}
+\begin{frame}
+	\frametitle{Idea}
+	\begin{itemize}
+		\item add access rights to values
+			\begin{itemize}
+				\item introduce access tickets
+				\item account for derived tickets for forked processes
+			\end{itemize}
+		\item ensure:
+			\begin{itemize}
+				\item shared access restricts to reading
+				\item write access is exclusive
+			\end{itemize}
+	\end{itemize}
+	\blfootnote{\cite{SeparationLogic}, \cite{MultithreadedJavaPrograms}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Considerations}
+	\begin{columns}
+		\column{0.5\textwidth}
+		\begin{itemize}
+			\item distinguish \emph{write} \& \emph{read} access:
+				\begin{itemize}
+					\item $\mathit{WR}$
+					\item $\mathit{RD}$
+				\end{itemize}
+			\item account for derived read access
+			\item transfer write access completely
+			\item<3-> potential loss of information about access:
+				\begin{itemize}
+					\item<3-> $\mathit{WR}^{\ast}$
+					\item<3-> $\mathit{RD}^{\ast}$
+				\end{itemize}
+		\end{itemize}
+		\column{0.5\textwidth}
+		\only<2->{\resizebox{\textwidth}{!}{\input{tikz/BinTreeEx2}}}
+	\end{columns}
+	\blfootnote{\cite{FractionalPermissions}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Permission Expression}
+	\begin{itemize}
+		\item through assignment multiple process identifier refer to same
+			process
+		\item[$\Rightarrow$] token: $T\in\mathbb{P}(\PI)$
+	\end{itemize}
+	\pause
+	\begin{definition}[Permission Expression]
+		\begin{equation*}
+			\underbrace{\mathit{BasePerm}}_{\in\left\{\mathit{WR}, \mathit{RD},
+			\mathit{WR}^{\ast}, \mathit{RD}^{\ast}\right\}} -
+			\underbrace{\mathit{PermSet}}_{\subseteq\mathbb{P}(\PI)}
+		\end{equation*}
+	\end{definition}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Placeholders}
+		\begin{overlayarea}{\textwidth}{\textheight}
+			\begin{columns}
+				\column{0.5\textwidth}
+				\begin{itemize}
+					\item add token for read access
+				\end{itemize}
+				\uncover<2->{\resizebox{\textwidth}{!}{\input{tikz/BinTreeProgLangPerm}}}
+				\column{0.5\textwidth}
+				\begin{itemize}
+					\item replace by placeholder for write access
+				\end{itemize}
+				\uncover<3>{\resizebox{\textwidth}{!}{\input{tikz/BinTreeProgLangPermReplacement}}}
+			\end{columns}
+		\end{overlayarea}
+\end{frame}
+
+\section{Hypergraphs}
+\begin{frame}
+	\frametitle{Intuition}
+	\begin{itemize}
+		\item hypergraphs allow edges to connect arbitrary many nodes
+		\item modelling heap structure as hypergraphs:
+	\end{itemize}
+	\begin{columns}
+		\column{0.5\textwidth}
+			\begin{itemize}
+				\item objects as nodes
+				\item variables as unary hyperedges
+				\item selectors as binary hyperedges
+				\item placeholders as hyperedges with arbitrary many nodes
+			\end{itemize}
+		\column{0.5\textwidth}
+			\resizebox{\textwidth}{!}{\input{tikz/hgexp1}}
+	\end{columns}
+	\blfootnote{\cite{InformalGraphGrammars}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Hyperedge Replacement}
+	\begin{itemize}
+		\item re-integrate \enquote{$\mathit{WR}$-part} upon join
+		\item replace hyperedge by hypergraph
+		\item instructions can have the form of production rules:
+	\end{itemize}
+	\begin{center}
+		\resizebox{0.5\textwidth}{!}{
+			\begin{tikzpicture}
+				\node[he] (lhs) {$N_{\{t\}}$};
+				\node[right=2 and 2 of lhs] (rhs) {\scalebox{0.7}{\input{tikz/presprod}}};
+				\draw[->, thick, shorten <= 0.5cm, shorten >= 0.5cm] (lhs) to (rhs);
+			\end{tikzpicture}
+		}
+	\end{center}
+	\blfootnote{\cite[p. 104]{HandbookGraphGrammars}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example}
+	\resizebox{0.3\textwidth}{!}{\begin{tikzpicture}
+				\node[he] (lhs) {$N_{\{t\}}$};
+				\node[right=2 and 2 of lhs] (rhs) {\scalebox{0.7}{\input{tikz/presprod}}};
+				\draw[->, thick, shorten <= 0.5cm, shorten >= 0.5cm] (lhs) to (rhs);
+			\end{tikzpicture}}
+			\flushright\visible<2->{\resizebox{!}{5cm}{
+	\begin{tikzpicture}
+			\node (pre) {\scalebox{0.6}{\input{tikz/forkexample9}}};
+			\visible<3>{\node[right=of pre] (t) {$\Rightarrow$};
+			\node[right=of t] (post) {\scalebox{0.7}{\input{tikz/forkexample10}}};}
+		\end{tikzpicture}
+	}}
+\end{frame}
+
+\section{Semantics}
+\begin{frame}
+	\frametitle{Introduction}
+	\begin{itemize}
+		\item model behaviour of statements as graph transformations
+		\item every statement for which no behaviour is modelled explicitly yields
+			a \emph{fault} symbol
+		\item[1.] pointer assignments:
+			\begin{itemize}
+				\item \alert{for selectors ensure that the permission is
+					$\mathit{WR} - \emptyset$}
+				\item connect assigned selector or variable accordingly
+			\end{itemize}
+		\item[2.] allocation:
+			\begin{itemize}
+				\item add new node to hypergraph
+				\item add all selectors for node, point them to $v_{\text{null}}$
+				\item \alert{every new selector holds $\mathit{WR}-\emptyset$}
+			\end{itemize}
+		\item[3.] \alert{process identifier assignment ($t = t'$):}
+			\begin{itemize}
+				\item \alert{remove $t$ from tokens (for
+					a singleton token $\{t\}$ \enquote{star} $\mathit{BasePerm}$,
+				remove placeholder)}
+				\item \alert{add $t$ to tokens containing $t'$}
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Fork}
+	\begin{itemize}
+		\item actual vs. formal parameters
+		\item forked programs behave according to contracts:
+			\begin{itemize}
+				\item precondition: context of forking process (encodes actual
+					parameters)
+				\item alterable set: selectors that can be altered
+				\item postcondition: result of computation of forked process
+			\end{itemize}
+	\end{itemize}
+	\begin{equation*}
+		\Cont\colon\Proc\rightarrow\mathbb{P}(
+		\underbrace{\HG}_{\text{precondition}}\times
+		\underbrace{\mathbb{P}(E)}_{\text{alterable set}}\times
+		\underbrace{\mathit{HG}^{\PI'}_{\Sigma'}}_{\text{postcondition}})
+	\end{equation*}
+	\begin{equation*}
+		\left(\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/precondition}}},
+			\{e_2,e_3,e_4, e_7, e_8\},
+		\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postcondition}}}\right)
+	\end{equation*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Fork}
+	$t = \textbf{fork}(m(x_{1},\dots,x_{n}));$
+	\begin{itemize}
+		\item find fitting contract:
+			\begin{enumerate}
+				\item compute reachable subgraph from actual parameters
+					($x_1,\dots,x_n$)
+				\item match with precondition
+				\item compute border nodes
+				\item ensure forked and forking process agree on border nodes
+			\end{enumerate}
+		\item<2-> apply contract:
+			\begin{enumerate}
+				\item free the assigned process identifier ($t$)
+				\item remove selectors from alterable set in heap representation of
+					forking process
+				\item add placeholder connected to border nodes ($N_{\{t\}}$)
+				\item add token of newly forked process ($\{t\}$) to
+					$\mathit{PermSets}$ of reachable subgraph
+			\end{enumerate}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example}
+	\begin{columns}
+		\column{0.5\textwidth}
+			\begin{equation*}
+				\alt<1>{\left(\parbox{2cm}{\resizebox{2cm}{!}{
+						\input{tikz/precondition}}}, \{e_2,e_3,e_4, e_7, e_8\},
+				\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postcondition}}}\right)
+			}{
+				\alt<2-7>{\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/precFork1}}}}
+				{\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/precFork2}}}}
+			}
+			\end{equation*}
+			\visible<3->{
+				\begin{enumerate}
+					\item \alert<5>{compute reachable subgraph from actual
+						parameters}
+					\item \alert<6>{match with precondition}
+					\item \alert<7>{compute border nodes}
+					\item \alert<8>{ensure forked and forking process agree on
+							border nodes}
+				\end{enumerate}
+			}
+		\column{0.5\textwidth}
+		\begin{overlayarea}{\textwidth}{\textheight}
+		\vspace{1.5cm}
+			\only<4>{
+				\resizebox{\textwidth}{!}{\input{tikz/forkexample1}}
+			}
+			\only<5> {
+				\resizebox{\textwidth}{!}{\input{tikz/forkexample2}}
+			}
+			\only<6> {
+				\resizebox{\textwidth}{!}{\input{tikz/forkexample21}}
+			}
+			\only<7-> {
+				\resizebox{\textwidth}{!}{\input{tikz/forkexample3}}
+			}
+		\end{overlayarea}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example}
+	\begin{columns}
+		\column{0.5\textwidth}
+			\begin{equation*}
+				\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/precFork2}}}
+			\end{equation*}
+			\begin{enumerate}
+				\item\alert<1>{free the assigned process identifier ($t$)}
+				\item\alert<2-3>{remove selectors from alterable set}
+				\item\alert<4>{add placeholder connected to border nodes}
+				\item\alert<5>{add token $\{t\}$ to $\mathit{PermSets}$ of
+					reachable subgraph}
+			\end{enumerate}
+		\column{0.5\textwidth}
+		\begin{overlayarea}{\textwidth}{\textheight}
+		\vspace{1.5cm}
+			\only<1>{\resizebox{\textwidth}{!}{\input{tikz/forkexample3}}}
+			\only<2>{\resizebox{\textwidth}{!}{\input{tikz/forkexample4}}}
+			\only<3>{\resizebox{\textwidth}{!}{\input{tikz/forkexample5}}}
+			\only<4>{\resizebox{\textwidth}{!}{\input{tikz/forkexample6}}}
+			\only<5>{\resizebox{\textwidth}{!}{\input{tikz/forkexample7}}}
+		\end{overlayarea}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Initial Heap State}
+	\begin{columns}
+		\column{0.5\textwidth}
+			\begin{equation*}
+				\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/precFork2}}}
+			\end{equation*}
+			\begin{itemize}
+				\item initial heap state for forked program:
+					\begin{itemize}
+						\item mirror precondition
+						\item $\mathit{WR}$ permissions for selectors in alternable
+							set
+						\item $\mathit{RD}$ permissions for other selectors
+						\item set formal parameters
+					\end{itemize}
+			\end{itemize}
+		\column{0.5\textwidth}
+			\only<2>{\resizebox{0.7\textwidth}{!}{\input{tikz/initialheapstate}}}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Join}
+	\begin{columns}
+		\column{0.33\textwidth}
+			\begin{equation*}
+				\alt<1-2>{\alt<1>{\left(\parbox{2cm}{\resizebox{2cm}{!}{
+					\input{tikz/precondition}}}, \{e_2,e_3,e_4, e_7, e_8\},
+			\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postcondition}}}\right)}
+			{\left(\parbox{2cm}{\resizebox{2cm}{!}{
+					\input{tikz/precFork3}}}, \{e_2,e_3,e_4, e_7, e_8\},
+			\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postFork}}}\right)}
+				}{
+					\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postFork}}}
+				}
+			\end{equation*}
+		\column{0.33\textwidth}
+		\visible<4->{\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postForkRD}}}}
+		\column{0.33\textwidth}
+		\visible<5->{\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postForkWR}}}}
+	\end{columns}
+	\begin{itemize}
+		\item re-integrate postcondition upon join:
+			\begin{enumerate}
+				\item \alert<2>{drop all process identifier}
+				\item \alert<4>{return read ticket:}
+					\begin{itemize}
+						\item<4-> all edges return full $\mathit{RD}$ permission
+							$\rightarrow$ read ticket can be returned
+						\item<4-> one edge can only return $\mathit{RD}^{\ast}$
+							permission $\rightarrow$ read ticket is lost
+					\end{itemize}
+				\item \alert<5>{return write ticket:}
+					\begin{itemize}
+						\item<5> return $\mathit{WR}/\mathit{WR}^{\ast}$-part by
+							replacing the placeholder
+					\end{itemize}
+			\end{enumerate}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example}
+	\begin{columns}
+		\column{0.4\textwidth}
+		\begin{equation*}
+		\alt<1>{\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postFork}}}
+		}{\alt<2-3>{
+			\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postForkRD}}}}
+		{\parbox{2cm}{\resizebox{2cm}{!}{\input{tikz/postForkWR}}}}}
+		\end{equation*}
+		\begin{enumerate}
+			\item \textcolor{black!40}{drop process identifier}
+			\item<2-> \alert<2-3>{return read ticket}
+			\item<4-5> \alert<4-5>{return $\mathit{WR}$-part}
+		\end{enumerate}
+		\column{0.6\textwidth}
+			\begin{overlayarea}{\textwidth}{\textheight}
+				\only<1-2>{\resizebox{0.7\textwidth}{!}{\input{tikz/forkexample7}}}
+				\only<3>{\resizebox{0.7\textwidth}{!}{\input{tikz/forkexample8}}}
+				\only<4>{\resizebox{0.7\textwidth}{!}{\input{tikz/forkexample9}}}
+				\only<5>{\resizebox{\textwidth}{!}{\input{tikz/forkexample10}}}
+			\end{overlayarea}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Data Race Freedom}
+	\begin{theorem}[Data Race Freedom]
+		All executions that can be modelled by the presented semantics are data race
+		free.
+	\end{theorem}
+	\begin{itemize}
+		\item<2-> by induction over the transition relation it can be shown that for
+			sound contracts:
+			\begin{enumerate}
+				\item<3-> only selectors with a $\mathit{WR}-\emptyset$ permission are
+					altered
+				\item<4-> write tickets are completely transferred
+				\item<5-> for all permissions with $\mathit{WR}$ or $\mathit{RD}$ all
+					derived access tickets are properly accounted in the
+					$\mathit{PermSets}$
+			\end{enumerate}
+	\end{itemize}
+\end{frame}
+
+\section{Abstraction \& Concretisation}
+\begin{frame}
+	\frametitle{Idea}
+	\begin{itemize}
+		\item data structures often share repetetive structure
+	\end{itemize}
+	\begin{columns}
+			\column{0.33\textwidth}
+				\resizebox{\textwidth}{!}{\input{tikz/bintree1.tex}}
+			\column{0.33\textwidth}
+				\resizebox{\textwidth}{!}{\input{tikz/bintree2.tex}}
+			\column{0.33\textwidth}
+				\resizebox{\textwidth}{!}{\input{tikz/bintree3.tex}}
+	\end{columns}
+	\begin{itemize}
+		\item[$\Rightarrow$] represent structure of arbitrary size as \emph{one}
+			hyperedge from which the different structures can be derived on demand
+		\item introduce \emph{nonterminals} as representing hyperedges
+		\item set of production rules to derive structures $\rightarrow$
+			\emph{hyperedge replacement grammars} (HRGs)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Permissions in HRGs}
+	\begin{itemize}
+		\item permission propagate strictly through application of production rules:
+			\begin{itemize}
+				\item all edges of right hand sides have the same permission
+				\item \parbox{4cm}{\resizebox{4cm}{!}{\input{tikz/permprodrule}}}
+				\item production rules can only be applied to nonterminals with the
+					permission of the right hand side
+			\end{itemize}
+		\item separate structure and permission:
+	\end{itemize}
+	\begin{definition}[Fully Permissive Grammar]
+		$G\in\HRG$ is called \emph{fully permissive} if the following holds:
+		Every production rule $p\colon X\rightarrow H$ in $G$ exists for every
+		$\rho\in\PES$.
+	\end{definition}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example}
+	$\left\{\begin{aligned}
+			 & \parbox{2.5cm}{\resizebox{2.5cm}{!}{
+					\input{tikz/productionrule1}
+				}}, \parbox{2.5cm}{\resizebox{2.5cm}{!}{
+					\input{tikz/productionrule2}
+				}},\\& \parbox{2.5cm}{\resizebox{2.5cm}{!}{
+					\input{tikz/productionrule3}
+				}}, \parbox{2.5cm}{\resizebox{2.5cm}{!}{
+					\input{tikz/productionrule4}
+		}}
+		\end{aligned} \right\}$
+	\flushright\scalebox{0.4}{\input{tikz/replacementpres}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Abstraction}
+	\begin{itemize}
+		\item parts of heap representations can be abstracted by applying
+			production rules backwards
+		\item permission of introduced nonterminal fits permission of abstracted
+			subgraph
+	\end{itemize}
+	\resizebox{\textwidth}{!}{\input{tikz/bintreeabspres}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Semantics}
+	\begin{itemize}
+		\item concrete semantics for pointer operations can be applied to
+			partially abstract hypergraphs as long all accessible selectors
+			are present
+		\item Recall: for pointer operations the depth of dereferences is $1$
+	\end{itemize}
+	\begin{columns}
+		\column{0.5\textwidth}
+			\begin{overlayarea}{\textwidth}{\textheight}
+				\scalebox{0.8}{\resizebox{\textwidth}{!}{\input{tikz/abstractedbintree}}}
+			\end{overlayarea}
+		\column{0.5\textwidth}
+			\begin{overlayarea}{\textwidth}{\textheight}
+				\only<2>{\scalebox{0.9}{\resizebox{\textwidth}{!}{\input{tikz/conctree1}}}}
+				\only<3>{\scalebox{0.9}{\resizebox{\textwidth}{!}{\input{tikz/conctree2}}}}
+				\only<4>{\scalebox{0.9}{\resizebox{\textwidth}{!}{\input{tikz/conctree3}}}}
+				\only<5>{\scalebox{0.9}{\resizebox{\textwidth}{!}{\input{tikz/conctree4}}}}
+			\end{overlayarea}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Semantics: Fork}
+	\begin{itemize}
+		\item adapt concrete semantics:
+			\begin{itemize}
+				\item \alert<2-3>{abstract contracts:}
+					\begin{itemize}
+						\item abstract precondition represents multiple heaps
+							$\rightarrow$ so does initial heap state
+						\item postcondition might depend on concretisation
+							$\rightarrow$ multiple postconditions
+						\item[$\Rightarrow$] $ \Cont_{\text{abs}}\colon\Proc
+							\rightarrow \mathbb{P}(\HGN\times\mathbb{P}(E)\times
+							\alert<3>{\mathbb{P}(\mathit{HG}^{\PI'}_{\Sigma_{N}'})})$
+					\end{itemize}
+				\item \alert<4-5>{reachability over nonterminals:}
+					\begin{itemize}
+						\item if nonterminal can be concretised to reachability
+						\item if nonterminal abstracts reachable parts
+						\item<5> (example: \parbox{4cm}{\resizebox{4cm}{!}{\input{tikz/reachex}}})
+						\item[$\Rightarrow$] include into reachable subgraph
+					\end{itemize}
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Semantics: Join}
+	\begin{itemize}
+		\item adapt concrete semantics:
+			\begin{itemize}
+				\item join \emph{every} postcondition:
+				\item read token returned by permissions only
+					\begin{itemize}
+						\item no matching between read edges
+						\item allows for modular analysis for every process
+					\end{itemize}
+				\item $\mathit{WR}/\mathit{WR}^{\ast}$-part returned by replacement
+					of placeholder
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Over-approximation}
+	\begin{theorem}[Overapproximation]
+		The abstract semantics are an over-approximation of the concrete
+		semantics.
+	\end{theorem}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Proof Intuition}
+	\begin{itemize}
+		\item contracts: \parbox{7cm}{\resizebox{7cm}{!}{\input{tikz/contracts}}}
+		\item contracts: one abstract postcondition concretises to the concrete
+			postcondition
+		\item compute reachability for concrete hypergraphs in its abstraction
+	\end{itemize}
+	\begin{equation*}
+		\scalebox{0.5}{\input{tikz/permlemma}}
+	\end{equation*}
+	\blfootnote{\cite[pp. 111-115]{HandbookGraphGrammars}, \cite[p. 19]{fmsd}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Abstract Data Race Freedom}
+	\begin{itemize}
+		\item valid modelling of execution by abstract semantics ensures valid
+			modelling of execution by all represented concrete semantics
+		\item[$\Rightarrow$] all executions are data race free
+	\end{itemize}
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}
+	\frametitle{Conclusion}
+	\begin{itemize}
+		\item incorporate permission model in heap representing hypergraphs
+		\item introduced fork \& join
+		\item modelled semantics by hypergraph transformations
+		\item correct over-approximation by abstracting with hyperedge
+			replacement grammars
+		\item ensures data race freedom
+	\end{itemize}
+\end{frame}
+
+\section{Future Work}
+\begin{frame}
+	\frametitle{Future Work}
+	\begin{itemize}
+		\item automatic generation of contracts\footnote{like in \cite{ProcedureSummaries}}
+		\item integrating into Juggrnaut Tool
+		\item treating processes as heap objects
+		\item explore other shared resources (e.g. monitor {\cite{Monitor}})
+		\item refine under-approximation of permissions ($\mathit{WR}^{\ast},
+			\mathit{RD}^{\ast}$ represent logically the same permission)
+		\item allow concretisation steps at fork for finer write demands
+	\end{itemize}
+	\nocite{thesis}
+\end{frame}
+
+\section{References}
+
+\metroset{sectionpage=none}
+\begin{frame}[allowframebreaks]
+	\printbibliography
+\end{frame}
+
+\begin{frame}[plain]
+	\centering\Huge Thank you for the attention!
+\end{frame}
+
+%backup
+
+\end{document}

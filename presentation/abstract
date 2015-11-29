@@ -1,0 +1,8 @@
+	The presentation introduces techniques for the analysis of concurrently
+	executing processes based on a representation of the heap structure
+	as hypergraphs. It introduces a programming
+	language that allows parallel execution in means of fork and join and
+	models its semantics in terms of hypergraphs transformations.
+	The main results are the abstraction of the heap structure by hyperedge
+	replacement grammars as overapproximation and the data race free execution
+	of programs.

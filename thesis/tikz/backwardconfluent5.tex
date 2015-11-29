@@ -1,0 +1,11 @@
+\begin{tikzpicture}
+	\node[node] (v1) {};
+	\node[he, right=of v1, label=90:{$\mathit{WR}$}] (L) {$L$};
+	\node[node, right=of L] (v2) {};
+	\node[node, right=of v2] (v3) {};
+
+	\draw[connector] (L) to node[above]{$1$} (v1);
+	\draw[connector] (L) to node[above]{$2$} (v2);
+	\draw[sel, bend left] (v2) to node[above]{$n_{\mathit{WR}}$} (v3);
+	\draw[sel, bend left] (v3) to node[above]{$p_{\mathit{WR}}$} (v2);
+\end{tikzpicture}

@@ -1,0 +1,12 @@
+\begin{tikzpicture}
+	\node[node, ext] (r-r) [below right=of r] {$v_{1}$};
+	\node[node, node distance=2 and 1.2] (r-r-r) [below right=of r-r] {$v_{3}$};
+	\node[node]                          (r-r-r-r) [below=of r-r-r] {$v_{4}$};
+	\node[node, ext, node distance=3 and 1.2] (null)    [below=of r-r] {$v_{\textbf{null}}$};
+
+	\draw [sel] (r-r) to node[right, label={180:$e_{2}$}]{$r_{\mathit{WR}}$} (r-r-r);
+	\draw [sel] (r-r-r) to node[right, label={180:$e_{3}$}]{$l_{\mathit{WR}}$} (r-r-r-r);
+	\draw [sel] (r-r-r) to node[above left, label={[label distance=-2mm]0:$e_{4}$}]{$r_{\mathit{WR}}$} (null);
+	\draw [sel] (r-r-r-r) to node[above,label={[label distance=-1mm]-90:$e_{7}$}]{$r_{\mathit{WR}}$} (null);
+	\draw [sel, bend left] (r-r-r-r) to node[below, label={[label distance=-2mm]180:$e_{8}$}]{$l_{\mathit{WR}}$} (null);
+\end{tikzpicture}

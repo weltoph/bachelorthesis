@@ -1,0 +1,15 @@
+\begin{tikzpicture}
+	\node[he] (lhs) {$B$};
+	\node[node, right=1cm and 2cm of lhs] (v2) {};
+	\node[node, ext, above right=of v2] (v1) {$1$};
+	\node[node, below right=of v1] (v3) {};
+	\node[node, below right=of v2] (null) {$v_{\text{null}}$};
+
+	\draw[very thick, ->, shorten >=0.5cm, shorten <=0.5cm] (lhs) to (v2);
+	\draw[sel] (v1) to node[left] {$l$} (v2);
+	\draw[sel] (v1) to node[right]{$r$} (v3);
+	\draw[sel, bend left] (v2) to node[above]{$l$} (null);
+	\draw[sel, bend right] (v2) to node[below]{$r$} (null);
+	\draw[sel, bend left] (v3) to node[below]{$l$} (null);
+	\draw[sel, bend right] (v3) to node[above]{$r$} (null);
+\end{tikzpicture}

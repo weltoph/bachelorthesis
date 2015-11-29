@@ -1,0 +1,50 @@
+\subsection{Future Work}
+\label{sec:futurework}
+	After having shown that analysis based on contracts yields data race freedom
+	and is therefore a viable approach on parallel execution of processes it is
+	of special interest how to obtain such contracts. Therefore it is open for
+	future research to compute these contracts automatically. Due to the
+	similarity of contracts in \cite{ProcedureSummaries} and the
+	presented work the same approach of \emph{fixpoint iteration} to compute
+	contracts can be explored for the presented setup. Additionally integrating
+	the presented permission model into the already existent tool Juggrnaut is
+	of interest in order to collect experimental data of the efficency of this
+	approach for actual problems.
+	For permission accounting in separation logic there are approaches to
+	abstract from actual permission models
+	\cites{SeparationLogic}{AbstractSeparationLogic} which opens permission
+	accounting to be explored with various possible permission models. Working
+	on such an abstraction for heap representation with hypergraphs opens this
+	approach to choosing fitting permission models for different situations.
+	Also discussed in \cite{SeparationLogic} is another concept of sharing
+	resources between processes: \emph{conditional critical regions}. These are
+	parts of the program that are connected with a shared resource. This shared
+	resource can be aquired (which grants exclusive access), operated on and
+	finally released. This describes a mechanism of programming for parallel
+	execution known as \emph{monitor} \cite{Monitor} which is e.g. part of the
+	programming language Ada95 \cite[p. 163ff]{Ada95}. A possible approach of
+	integrating this concept for the presented permission model is to introduce
+	a \enquote{ghost process} which is joined by aquiring and forked by
+	release of the resource. For separation logic \emph{invariants} are used to
+	describe conditional critical resources \cite{SeparationLogic}, which can
+	possibly applied to hypergraph representation by representing the resource
+	as single nonterminal and ensuring that this nonterminal describes all
+	possible states of the resource. Also connected to this is considering
+	forked processes as heap objects themselves. Because this is closer to the
+	actual implementation of fork and join in programming languages e.g. Java
+	\cite{MultithreadedJavaPrograms}. This would additionally allow to provide
+	processes as parameter for procedure calls of further fork statements.
+	Moreover \cite{MultithreadedJavaPrograms} allows for forked process to be
+	joined by various processes in order to obtain a part of the permissions of
+	the postcondition, which could possibly adapted for the representation of
+	hypergraphs as well.
+
+	Regarding abstraction and abstract contracts it is possible that these
+	contracts are far too rigorous for their alternable sets. Consider therefore
+	a process that might change the right subtree of a provided binary tree
+	but leaves the left subtree as is. Abstraction in the context of a
+	\emph{\ac{HRG}} as presented on page \pageref{eq:G} might cause
+	indistinguishability between the subtrees and causes the process to demand
+	write access on both. A possible approach on this might be to add
+	to contracts the information that applying some concretisation steps might
+	yield considerably finer demands.

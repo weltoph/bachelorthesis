@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+	\node[var] (tmp) {$\mathit{tmp}$};
+	\node[node, below=of tmp, yellow!30] (1) {};
+	\node[node, below left=of 1, yellow!30] (2) {};
+	\node[node, below right=of 1, yellow!30] (3) {};
+	\node[node, below=of 3] (null) {$v_{\text{null}}$};
+	\node[he, below=of 2] (B) {$B$};
+	\node[node, above right=of 3] (4) {};
+	\node[var, above=of 4] (curr) {$\mathit{curr}$};
+	\draw[connector] (tmp) to (1);
+	\draw[connector] (curr) to (4);
+	\draw[connector] (B) to node[left]{$1$} (2);
+	\draw[connector] (B) to node[below]{$2$} (null);
+	\draw[sel, bend right] (1) to node[below]{$p$} (null);
+	\draw[sel] (1) to node[above]{$l$} (2);
+	\draw[sel] (1) to node[above]{$r$} (3);
+	\draw[sel] (2) to node[below]{$p$} (null);
+	\draw[sel] (3) to node[right]{$l,r,p$} (null);
+	\draw[sel] (4) to node[above]{$p$} (3);
+	\draw[sel, bend left] (4) to node[right]{$l,r$} (null);
+\end{tikzpicture}

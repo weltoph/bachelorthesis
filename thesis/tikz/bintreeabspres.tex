@@ -1,0 +1,47 @@
+\begin{tikzpicture}[node distance=2 and 2]
+	\node [node] (v1) {};
+	\node [node, below left=of v1] (v2) {};
+	\node [node, below right=of v1] (v3) {};
+	\node [node, below left=2 and 0.5 of v3] (v4) {};
+	\node [node, below right=2 and 0.5 of v3] (v5) {};
+	\visible<3->{\node [node, right =4 of v3] (v6) {};
+	\node [node, above right=of v6] (v7) {};
+	\node [node, below right=of v7] (v8) {};}
+	\node [node, below right= 2 and 0.5 of v2] (null1) {$v_{\text{null}}$};
+	\visible<3->{\node [node, below right= 2 and 0.5 of v6] (null2) {$v_{\text{null}}$};}
+	\visible<3->{\node [he, label={0:$\mathit{WR}-\{\{t\}\}$}] (b) at (null2-|v8) {$B$};}
+	\node[below=of null1] (dummy){};
+
+	%left
+	\draw [sel] (v1) to node[left]{$l_{\mathit{WR}}$} (v2);
+	\draw [sel] (v1) to node[right]{$r_{\mathit{WR}}$} (v3);
+	\draw [sel, bend right] (v2) to node[left]{$l_{\mathit{WR}}$} (null1);
+	\draw [sel, bend left] (v2) to node[right]{$r_{\mathit{WR}}$} (null1);
+	\draw [sel] (v3) to node[left]{$l_{\mathit{WR}-\{\{t\}\}}$} (v4);
+	\draw [sel] (v3) to node[right]{$r_{\mathit{WR}-\{\{t\}\}}$} (v5);
+	\draw [sel, bend right] (v4) to node[above]{$l_{\mathit{WR}-\{\{t\}\}}$} (null1);
+	\draw [sel, bend left] (v4) to node[below]{$r_{\mathit{WR}-\{\{t\}\}}$} (null1);
+	\draw [sel, bend left=55] (v5) to node[above right]{$l_{\mathit{WR}-\{\{t\}\}}$} (null1);
+	\draw [sel, bend left=75] (v5) to node[below]{$r_{\mathit{WR}-\{\{t\}\}}$} (null1);
+
+	%right
+	\visible<3->{\draw [sel] (v7) to node[left]{$l_{\mathit{WR}}$} (v6);
+	\draw [sel] (v7) to node[right]{$r_{\mathit{WR}}$} (v8);
+	\draw [sel, bend right] (v6) to node[left]{$l_{\mathit{WR}}$} (null2);
+	\draw [sel, bend left] (v6) to node[right]{$r_{\mathit{WR}}$} (null2);
+	\draw [connector] (b) to node[right]{$1$} (v8);
+	\draw [connector] (b) to (null2);
+
+	\node [right=0.6 and 0.6 of v3] (d1) {};
+	\node [left=0.6 and 0.6 of v6] (d2) {};}
+
+	\visible<3->{\draw [very thick,->, decorate,
+	decoration={snake,amplitude=.7mm, segment length=4mm, post length=2mm}] (d1) to (d2);}
+
+	\begin{scope}[on background layer]
+		\visible<2->{\node [he, fit=(v3) (v4) (v5) (null1) (dummy)] (layer) {};}
+	\end{scope}
+
+	\visible<3->{\draw [-, dashed, thick, color=blue!50] (layer.north east) to (b.north west);}
+	\visible<3->{\draw [-, dashed, thick, color=blue!50] (layer.south east) to (b.south west);}
+\end{tikzpicture}

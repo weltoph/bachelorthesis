@@ -1,0 +1,10 @@
+\begin{tikzpicture}
+	\node[var]                 (curr) {$\mathit{curr}$};
+	\node[node, below=of curr] (v)    {};
+	\node[node, below left=of v] (null) {$v_{\text{null}}$};
+	\node[he, label={0:{$\mathit{WR}$}}] (e) at (null-|v) {$B$};
+
+	\draw[connector] (curr) to                  (v);
+	\draw[connector] (e)    to node[right]{$1$} (v);
+	\draw[connector] (e)    to                  (null);
+\end{tikzpicture}

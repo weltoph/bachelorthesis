@@ -1,0 +1,24 @@
+\begin{tikzpicture}
+	\coordinate (a1) at (0,0.2);
+	\coordinate (a2) at (1.2,0);
+	\coordinate (a3) at (0.4,1);
+	\coordinate (a4) at (1.5,1.2);
+
+	\draw[green, fill=green, rounded corners=.8mm] (a1) \irregularcircle{0.8cm}{1.2mm};
+	\draw[red, fill=red, rounded corners=.8mm] (a2) \irregularcircle{0.8cm}{1.2mm};
+	\draw[blue, fill=blue, rounded corners=.8mm] (a3) \irregularcircle{0.7cm}{1.2mm};
+	\draw[yellow, fill=yellow, rounded corners=.8mm] (a4) \irregularcircle{0.8cm}{1.2mm};
+
+	\coordinate (c1) at (6.3,0.2);
+	\coordinate (c2) at (9.2,0);
+	\coordinate (c3) at (7.4,2);
+	\coordinate (c4) at (10,2.2);
+
+	\draw[green, fill=green, rounded corners=.9mm] (c1) \irregularcircle{1.7cm}{1.4mm};
+	\draw[red, fill=red, rounded corners=.9mm] (c2) \irregularcircle{1.7cm}{1.5mm};
+	\draw[blue, fill=blue, rounded corners=.9mm] (c3) \irregularcircle{1.6cm}{1.4mm};
+	\draw[yellow, fill=yellow, rounded corners=.9mm] (c4) \irregularcircle{1.6cm}{1.5mm};
+
+	\draw[->, thick, bend right, shorten <= 2cm, shorten >= 1.4cm] (c3) to node[below]{$\abs$} (a4);
+	\draw[->, thick, bend right, shorten <= 1.4cm, shorten >= 2cm] (a2) to node[above]{$\mathit{conc}$} (c1);
+\end{tikzpicture}

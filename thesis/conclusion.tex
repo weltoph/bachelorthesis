@@ -1,0 +1,22 @@
+\section{Conclusion}
+	For the future it can be generally assumed that complexity of software
+	increases further. Especially the paradigm of parallel programming becomes
+	more and more important (for example in the relatively new programming
+	language \emph{Go} which offers \enquote{explicit support for concurrent
+	programming.} \cite{golang}). In this work a permission model was added to
+	the already established analysing technique of representing pointer
+	structures as hypergraphs. This allows analysing programs with parallel
+	execution and therefore a programming language was introduced which supports
+	simple pointer manipulation as well as parallel execution by fork and join
+	statements. The semantics were appropiatly defined in terms of hypergraph
+	transformations. As long as valid contracts for the different programs that
+	can be forked are provided the data race freedom for the analysed states is
+	proven. But the defined permission model is actually meant as basis for a
+	larger framework which allows computation of those contracts in order to
+	avoid defining those by hand which is error-prone.  Thus the presented
+	analysis is meant for providing a basis that allows further work with the
+	framework (as presented in Section \ref{sec:futurework}). Other
+	contributions regard the applied abstraction by \aclp{HRG}, namely
+	computation of reachability and especially the compatibility of \acl{HR}
+	with the permission model as shown in the proof of overapproximation of the
+	transition relation.

@@ -1,0 +1,10 @@
+\begin{tikzpicture}
+	\node[node] (v1) {};
+	\node[node, below left =2cm and 2cm of v1]                (v2) {};
+	\node[node, below right=2cm and 2cm of v1]                (v3) {};
+	\node[he, below=of v3, label=0:{$\mathit{WR}-\{\{t\}\}$}] (B)  {$B$};
+
+	\draw[sel] (v1) to node[left] {$l_{\mathit{WR}}$} (v2);
+	\draw[sel] (v1) to node[right]{$r_{\mathit{WR}}$} (v3);
+	\draw[connector] (B) to node[right]{$1$}          (v3);
+\end{tikzpicture}

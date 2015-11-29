@@ -1,0 +1,117 @@
+\section{Programming Language}
+	\label{sec:ProgLang}
+	In the following a very basic programming language is discussed, which
+	allows simple \emph{heap} manipulating operations. It is similar to the
+	programming language introduced in \cite{fmsd}. For the manipulation of the
+	heap it is possible to create objects by allocation. All these objects
+	contain a set of \emph{selectors} which refer to other objects or a
+	distinguishable empty state, \textbf{null}. Especially
+	there is just one set of selectors ($\Sel$) and all objects are universally
+	typed in the sense that the selectors of all objects are $\Sel$.
+	Additionally every program has a set of variables ($\Var$) which refer to
+	objects within the heap. This heap is implicitly \emph{garbage collected},
+	i.e. objects that can not be reached from one of the variables are
+	deleted. Initially all variables and selectors of newly allocated objects
+	refer to the \textbf{null} value.
+	One of the main features of the presented programming
+	language is the possibility of parallel execution. Therefore the \emph{fork}
+	and the \emph{join} statement are introduced. On the one hand the fork
+	statement allows to spawn a new process and on the other hand the join
+	statement synchronises a process by blocking until the process that is
+	joined terminates.
+	Every process operates on variables which are exclusively accessible to
+	itself.  But the objects of the heap can be shared between different
+	processes therefore at the forking of a new process it is provided with a
+	set of parameters which refer to objects of the heap. These parameters are
+	the initial values for some variables of the newly forked process. Because a
+	program might start multiple processes there is a set of \emph{process
+	identifier} ($\PI$) which are used to identify forked processes. These
+	process identifier are also unique for every executing process (as variables
+	are) and the join statement is called with one of theses identifiers to
+	determine which process the program synchronises with by waiting for its
+	termination. Forked processes execute defined programs concurrently and
+	every process must only be joined once.
+	Let $\Proc$ denote a finite set of programs that can be forked.
+	\subsection{Syntax}
+	\label{sec:syntax}
+	The syntax of the examined programming language can be given by a
+	context-free grammar starting in \syntax{<S>} as follows where
+	$x,x_1,\dots,x_n\in\Var, s\in\Sel, t,t_1,t_2\in\PI$ and $m\in\Proc$ is
+	another program:
+	\setlength{\grammarindent}{2cm}
+	\begin{grammar}
+	<P> ::= \textbf{null} | $x$ | $x.s$
+
+	<C> ::= <P> == <P> | <P> != <P> | <C> \&\& <C> | <C>  $\|$  <C>
+
+	<S> ::= $x$=<P> | $x.s$ = <P> | \textbf{new}($x$) | \textbf{while}(<C>)
+	\textbf{do} <S> \textbf{done}\alt
+	\textbf{if} (<C>) \textbf{then} <S> \textbf{else} <S> \textbf{fi} |
+	\textbf{skip} | <S>;<S>\alt
+	$t$=\textbf{fork}$(m(x_1,\dots,x_n))$ | join($t$) | $t_1 = t_2$
+	\end{grammar}
+
+	\subsection{Example}
+	In the following a small program is examined which traverses a binary tree.
+	Therefore there is one variable called $\mathit{curr}$ which is assumed to
+	initially start on a node of the binary tree. Every node has two selectors
+	$\mathit{left},\mathit{right}$ identifying the left and right subtree. The
+	program executes by forking another process that executes a
+	different program \emph{traverse} on every node initially
+	provided with the right subtree(the program traverse is assumed to not
+	change the subtree it operates on) and itself moving down the left subtree.
+	If there is no left subtree the most recently forked process is synchronised
+	with. At last the $\mathit{left}$ selector of $\mathit{curr}$ is set to the
+	right subtree of $\mathit{curr}$ and the $\mathit{right}$ selector is set to
+	the designated \textbf{null} value:
+	\begin{lstlisting}[caption={An example program}, label={lst:ExampleProgram}]
+while($\mathit{curr.left}$ != null) do
+	$\mathit{tmp}$ = $\mathit{curr.right}$;
+	$t$ = fork($\mathit{traverse}$($\mathit{tmp}$));
+	$\mathit{curr}$ = $\mathit{curr.left}$;
+done;
+$\mathit{tmp} = \mathit{curr.right}$;
+$t$ = fork($\mathit{traverse}$($\mathit{tmp}$));
+$\mathit{tmp} = $ null;
+join($t$);
+$\mathit{curr.left} = \mathit{curr.right}$;
+$\mathit{curr.right} = $ null;
+	\end{lstlisting}
+	Thus for this program the \emph{context}(the sets $\Sel$, $\PI$, $\Var$,
+	$\Proc$) is as follows:
+	\begin{itemize}
+		\item $\Proc = \{ \mathit{traverse} \}$
+		\item $\Sel  = \{ \mathit{left}, \mathit{right} \}$
+		\item $\Var  = \{ \mathit{curr}, \mathit{tmp}   \}$
+		\item $\PI   = \{ t \}$
+	\end{itemize}
+	Furthermore consider the graphical representation of the execution of this 
+	program that can be seen in Figure \ref{fig:BinTreeProgLang}.
+	\begin{figure}
+		\input{tikz/BinTreeProgLang}
+		\caption{A graphical representation of the execution of the example
+		program for one possible heap state, note that aside from the first step
+		selectors which refer to the \textbf{null} value are omitted.}
+		\label{fig:BinTreeProgLang}
+	\end{figure}
+	Some interesting observations can be made:
+	\begin{enumerate}
+		\item Because of the structure of the binary tree the newly forked
+			process can only access the subtrees starting from the parameter
+			object (marked in green).
+		\item After starting a new process the previously started process cannot
+			be referred to anymore since the process identifier is assigned to
+			another process. Thus there is no information about any process
+			operating on the yellow marked areas of the binary tree.
+		\item The last process is joined again, thus it can be assured that it
+			has terminated after the join statement. This means especially that
+			no process operates on the subtree which is moved from the right hand
+			side to the left hand side (as indicated by the absence of a yellow
+			mark).
+	\end{enumerate}
+	The in the following presented analysis of programs relies heavily on
+	representing the current state as graph. But in order to approach parallel
+	execution of multiple processes which share heap objects and their selectors
+	this representation is furtherly enriched. In order to account which parts
+	of the heap are accessible by multiple processes it is locally logged for
+	the selectors to which processes these are visible.

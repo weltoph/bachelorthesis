@@ -1,0 +1,40 @@
+\documentclass{scrartcl}
+\begin{document}
+	\begin{itemize}
+		\item find fitting contract:
+			\begin{enumerate}
+				\item compute reachable subgraph from actual parameters
+				\item match with precondition
+				\item compute border nodes
+				\item ensure forked and forking process agree on border nodes
+			\end{enumerate}
+		\item apply contract:
+			\begin{enumerate}
+				\item free the assigned process identifier
+				\item remove selectors from alterable set in heap representation of
+					forking process
+				\item add placeholder connected to border nodes
+				\item add token of newly forked process to
+					$\mathit{PermSets}$ of reachable subgraph
+			\end{enumerate}
+	\end{itemize}
+	\newpage
+	\begin{itemize}
+		\item re-integrate postcondition upon join:
+			\begin{enumerate}
+				\item drop all process identifier
+				\item return read ticket:
+					\begin{itemize}
+						\item all edges return full $\mathit{RD}$ permission
+							$\rightarrow$ read ticket can be returned
+						\item one edge can only return $\mathit{RD}^{\ast}$
+							permission $\rightarrow$ read ticket is lost
+					\end{itemize}
+				\item return write ticket:
+					\begin{itemize}
+						\item return $\mathit{WR}/\mathit{WR}^{\ast}$-part by
+							replacing the placeholder
+					\end{itemize}
+			\end{enumerate}
+	\end{itemize}
+\end{document}

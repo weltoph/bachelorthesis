@@ -1,0 +1,7 @@
+\begin{tikzpicture}
+	\node[node]                                      (v1) {};
+	\node[he, right=of v1, label=90:{$\mathit{WR}$}] (e)  {$L$};
+	\node[node, right=of e]                          (v2) {};
+	\draw[connector] (e) to node[above]{$1$} (v1);
+	\draw[connector] (e) to node[above]{$2$} (v2);
+\end{tikzpicture}

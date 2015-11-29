@@ -1,0 +1,329 @@
+\section{Concretisation \& Abstraction}
+	Making use of dynamic allocation and deallocation can lead to heap
+	structures of unbounded size. In order to present these structures in a
+	finite manner \emph{\ac{HR}} can be used in order to concretise and abstract
+	heap states by applying production rules for concretisation and by applying
+	production rules backwards for abstraction. Therefore introduce a set of
+	production rules in order to abstract parts of the heap representation.
+	In order to illustrate the
+	following steps the data structure of binary trees is examined along the
+	definitions\footnote{this example reassembles the \emph{\acl*{HRG}} from
+	\cite[p. 21]{fmsd}}. Reconsider the structure in the example from Figure
+	\ref{fig:BinTreeProgLang} and furthermore the \emph{\ac{HR}} from Figure
+	\ref{fig:replacement}. When the node marked by $n$ is interpreted as
+	$v_{\text{null}}$ and the production rule from Figure
+	\ref{fig:productionrule} is applied repetitively arbitrary large binary
+	trees can be constructed. But it is already noteable that repetitive
+	application of this production rule always leads to further $B$-labeled
+	edges. The following formal introduction of the concept of abstraction
+	follows mostly \cites{fmsd}{InductivePredicates}{LocalGreibachNormalForm}.
+
+	In order to distinguish the hyperedges that are used for the abstract
+	representation of a subgraph from the hyperedges that represent
+	placeholders, selectors or variables a new set of so called
+	\emph{nonterminals} $N$ is introduced. For the above considered example of
+	binary trees this set would be $N=\{B\}$. In the following
+	$\Sigma_{N} = \Sigma\biguplus N$ denotes the set of labels for
+	\emph{\acp{HG}} that are partially concrete and partially abstract.
+	Furthermore these \emph{nonterminals} are expected to connect always the
+	same amount of nodes. This amount is called the rank of the nonterminal.
+	Therefore a function $\rk\colon N\rightarrow \mathbb{N}$ is given and for
+	every \emph{\ac{HG}} $H$ it holds that if $\lab_{H}(e)\in N$ then
+	$|\con_{H}(e)|=\rk(\lab_{H}(e))$, the rank of $B$ for example is $2$.
+	The set of all these partially abstract \emph{\acp{HG}} is denoted by $\HGN$
+	and the set of \emph{\acp{HG}} that furthermore satisfy the restrictions of
+	\emph{\acp{HC}} is denoted by $\HCN$. Note that for now the permissions were
+	neglected but are actually incorporated as follows: a production rule
+	$p\colon X\rightarrow H$ with $X\in N$ is annotated by
+	a permission $\rho$ ($p_{\rho}$) such that for
+	$p_{\rho}\colon X\rightarrow H$
+	holds that $\img(\perm_{H}) = \{\rho\}$ (thus all edges in $H$ hold
+	permission $\rho$). Furthermore this production rule must only be applied to
+	an $X$-labeled edge if this edge holds the permission $\rho$.
+
+	\subsection{Hyperedge Replacement Grammar}
+	To apply abstraction and concretisation a set of production rules is used.
+	Such a set of production rules is called a \emph{\ac{HRG}}. Formally defined
+	as follows:
+	\begin{definition}[Hyperedge Replacement Grammar]
+		A \emph{\acl{HRG}} over an alphabet $\Sigma_N$ and
+		$\PI$ is a finite set of
+		production rules of the form $p_{\rho}\colon X\rightarrow G$ where
+		$X\in N$, $\rho\in\mathit{PES}_{\PI}$,
+		$G\in\mathit{HG}_{\Sigma_{N}}$ and $\rk(X) = |\ext_{G}|$.
+	\end{definition}
+	$\HRG$ denotes the set of all \emph{\acp{HRG}} over $\Sigma_{N}$ and
+	$\PI$. Especially, in this paper the concepts of structural abstraction and
+	permission accounting are independently examined, this means in order to
+	separate those concepts the following definition is used which states that
+	every production rule is available for every permission:
+	\begin{definition}[Fully Permissive Grammar]
+		\label{def:fpg}
+		$G\in\HRG$ is called \emph{fully permissive} if the following holds:
+		Every production rule $p\colon X\rightarrow H$ in $G$ exists for every
+		$\rho\in\PES$.
+	\end{definition}
+	The set of all \emph{\acp{fpHRG}} is denoted by $\fpHRG$.
+
+	In the following some definitions regarding \emph{\acp{fpHRG}} are
+	introduced. These intuitions and their respective definitions are examined
+	in their structural concepts only since the incorporation of permissions is
+	straightforward:
+	\begin{itemize}
+		\item For $G\in\fpHRG$ $G^{X} = \{ X'\rightarrow H\in G \mid X'=X\}$
+			denotes the set of all production rules for a nonterminal $X$.
+		\item For a production rule $p\colon X\rightarrow H$ $\lhs(p)$ is used
+			for $X$ and respectively $\rhs(p)$ for the right hand side $H$. $\rhs$
+			and $\lhs$ are lifted to sets of \emph{production rules} by
+			elementwise application.
+		\item The \emph{handle} of a nonterminal is introduced which is
+			the \emph{\ac{HG}} that contains one edge labeled by the nonterminal
+			and nodes connected to this nonterminal. Formally:
+				\begin{definition}[Handle]
+					For a \emph{\ac{fpHRG}} $G\in\fpHRG$ and a nonterminal $X\in N$
+					the \emph{handle} of $X$ is the \emph{\ac{HG}} $X^{\bullet}
+					\in\mathit{HG}_{\Sigma_{N}}$
+					with:
+					\begin{itemize}
+						\item $V_{X^{\bullet}} = \{v_1,\dots,v_{\mathit{rk}(X)}\}$
+						\item $E_{X^{\bullet}} = \{e\}$
+						\item $\mathit{con}_{X^{\bullet}} =
+							\{e\mapsto v_1\cdots v_{\mathit{rk}(X)}\}$
+						\item $\mathit{lab}_{X^{\bullet}} =
+							\{e\mapsto X\}$
+						\item $\mathit{ext}_{X^{\bullet}} = \epsilon$
+						\item $\mathit{perm}_{X^{\bullet}} = \{e\mapsto\rho\}$
+					\end{itemize}
+				\end{definition}
+		\item For hyperedges labeled with nonterminals the position on
+			which a node is attached on is called a \emph{tentacle}. A
+			tentacle is just a label and the position a node is attached to an
+			edge of this label.
+				\begin{definition}[Tentacle]
+					A \emph{tentacle} is a pair $(X,i)$ where $X\in N$ and
+					$i\in\{1,\dots \mathit{rk}(X)\}$.
+				\end{definition}
+		\item For hyperedges labeled with nonterminals the notion of
+			tentacles can be extended in order to describe how two nodes are
+			connected by this hyperedge. Such a connection is called a
+			\emph{bridge} and reassembles two tentacles of the same nonterminal.
+				\begin{definition}[Bridge]
+					A \emph{bridge} is a triple $(i, X, j)$ where $X\in N$ and
+					$1\leq i,j\leq \rk(X)$.
+				\end{definition}
+			Let $\br(S)$ denote the set of all bridges for the set of ranked
+			labels $S$.
+	\end{itemize}
+	Consider the following possible \emph{\ac{fpHRG}} $G$ which describes the
+	abstraction of binary trees:
+	\begin{equation*}
+		\label{eq:G}
+		G = \left\{\begin{aligned}
+			 & \parbox{5cm}{\resizebox{5cm}{!}{
+					\input{tikz/productionrule1}
+				}}, \parbox{5cm}{\resizebox{5cm}{!}{
+					\input{tikz/productionrule2}
+				}},\\& \parbox{5cm}{\resizebox{5cm}{!}{
+					\input{tikz/productionrule3}
+				}}, \parbox{5cm}{\resizebox{5cm}{!}{
+					\input{tikz/productionrule4}
+		}}
+		\end{aligned} \right\}
+	\end{equation*}
+	Note that these production rules are present for every permission, since it
+	is a fully permissive \emph{\ac{HRG}} and that from $H\in\HGN$ it can be
+	possible to derive multiple \emph{\acp{HG}} since there might be
+	more than one production rule for any nonterminal. Consider
+	therefore the \emph{\ac{HG}} of Figure \ref{fig:replacement} and the
+	\emph{\ac{fpHRG}} $G$ from above. It is easily to see that multiple
+	different \emph{\acp{HG}} can be derived. The set of all these deriveable
+	\emph{\acp{HG}} which no longer contain a nonterminal (like the terminal
+	words of a string grammar) is called the language of $H$ and defined as
+	follows:
+	\begin{definition}[Language of an \ac{HG}]
+		For $G\in\fpHRG$ and $H\in\mathit{HG}_{\Sigma_{N}}$
+		\begin{equation*}
+			L_{G}(H) = \{K\in\mathit{HG}_{\Sigma} \mid H \Rightarrow^{*} K\}
+		\end{equation*}
+		is the \emph{language} from the \emph{\ac{HG}} $H$
+		(under the \emph{\ac{fpHRG}} $G$).
+	\end{definition}
+
+	\subsection{Properties}
+	In the following some properties of \emph{\acp{HRG}} are discussed. The
+	presented properties as well as the presented results for \emph{\acp{fpHRG}}
+	follow from \cite{LocalGreibachNormalForm}. Actually the design of the
+	definitions are built around those in \cite{LocalGreibachNormalForm} to
+	focus on the compatibility of adding permissions to the already established
+	results. At first it is discussed which selectors a nonterminal actually
+	abstracts. By considering the example in Figure \ref{fig:replacement} it can
+	easily be seen, that at the different connected nodes of the $B$-labeled
+	edge different selectors are abstracted. At the node on the tentacle $(B,1)$
+	both selectors $l$ and $r$ are \enquote{hidden} in the abstraction of the
+	hyperedge whereas the node on tentacle $(B,2)$ identifies $v_{\text{null}}$
+	which must not have any outgoing selectors. This illustrates that different
+	selectors can be abstracted at different tentacles. \emph{Typedness} is
+	introduced to ensure that application production rules reveals the same
+	selectors for every tentacle. The function $\type$ maps from tentacles to
+	the sets of the selectors this tentacle abstracts. In the \emph{\ac{fpHRG}}
+	from page \pageref{eq:G} it holds that $\type(B,1) = \{l,r\}$. The formal
+	definition is as follows:
+	\begin{definition}[Typedness]
+		For $G\in\fpHRG$ a nonterminal $X\in N$ is called typed if for all
+		tentacles $(X,i)$ there is a set $\type(X,i)\subseteq\Sel$ such that for
+		all $H\in L_{G}(X^{\bullet})$ where $v^{\bullet}_{i}$ is the node of the
+		tentacle $(X,i)$ in $X^{\bullet}$ it holds:
+		\begin{equation*}
+			\type(X,i) = \lab_H(\out_{H}(v^{\bullet}_{i}))
+		\end{equation*}
+	\end{definition}
+	Note that $\out_{H}(v) = \{e \in E_{H}\mid \con_{H}(1) = v
+	\land \lab_{H}(e)\in\Sel\}$ is the set of all outgoing
+	selectors from the object represented by $v$. Since different tentacles
+	might have different types but the definition
+	of \emph{\ac{HC}} enforces that every node is universally typed it is
+	possible that the nodes of a handle violate this typing. Therefore the
+	notion of handles is expanded to ensure that at least the initial nodes of
+	the handle are universally typed:
+	\begin{definition}[Typed Handle]
+		For a typed nonterminal $X\in N$ let $\mathit{Type} =
+		\bigcup_{1\leq i\leq\rk(X)}\type(X,i)$ denote the set of all selectors of
+		the nonterminal. The typed handle of $X$ (denoted as $X^{\circ}$) is
+		defined as follows:
+		\begin{itemize}
+			\item $V_{X^{\circ}} = \{v_{1},\dots,v_{\rk(X)},v_{\text{null}}
+				\}$
+			\item $E_{X^{\circ}} = \{e\} \uplus \{e_{s,i}\mid 1\leq i\leq
+				\rk(X), s\in\mathit{Type}\setminus\type(X,i)\}$
+			\item $\con_{X^{\circ}} = \{e\mapsto v_{1}\cdots v_{\rk(X)}\}
+				\uplus\{e_{s,i}\mapsto v_{i}v_{\text{null}}\mid e_{s,i}\in
+				E_{X^{\circ}}\}$
+			\item $\lab_{X^{\circ}} = \{e\mapsto X\}\uplus\{e_{s,i}\mapsto s
+				\mid e_{s,i}\in E_{X^{\circ}}\}$
+			\item $\ext_{X^{\circ}} = \varepsilon$
+			\item $\perm_{X^{\circ}} = \{e\mapsto\mathit{WR}\mid e\in
+				E_{X^{\circ}}\}$
+		\end{itemize}
+	\end{definition}
+
+	Secondly, \emph{productivity} is examined which simply states that at
+	least one terminal \emph{\ac{HG}} can be derived from this nonterminal.
+	Formally stated as:
+	\begin{definition}[Productivity]
+		For $G\in\HRG$ a nonterminal $X\in N$ is called \emph{productive} if
+		\begin{equation*}
+			L_{G}(X^{\bullet})\neq\emptyset
+		\end{equation*}
+		$G$ is called \emph{productive} if all nonterminals in $G$ are
+		\emph{productive}.
+	\end{definition}
+
+	Following \emph{increasingess} is introduced. The idea is that every right
+	hand side of a production rule is strictly \enquote{bigger} than the left
+	hand side. Where \enquote{bigger} refers to the number of edges, but also
+	terminal \emph{\acp{HG}} are considered \enquote{bigger}. This ensures that
+	applying succesively production rules in a backward fashion terminates,
+	since every applied production rules reduces the size of the \emph{\ac{HG}}.
+	\begin{definition}[Increasingess]
+		For $G\in\fpHRG$ a production rule $p\colon X\rightarrow H\in G$ is
+		called \emph{increasing} if $H\in\HG$ or $H\in\aHG \land |E_{H}| > 1$.
+		$G$ is called \emph{increasing} if all $p\in G$ are increasing.
+	\end{definition}
+
+	Fourthly, \emph{local concretisability} means that for every tentacle there
+	are production rules that reveal abstracted selectors but preserve the
+	language of the graph. In order to illustrate the problem another
+	\emph{\ac{fpHRG}} is introduced\footnote{this example is featured in
+		various contributions to this approach \cites{InformalGraphGrammars}
+		{InductivePredicates} because of its illustrating quality}:
+	\begin{equation*}
+		\label{eq:G'}
+		G' = \left\{
+			\begin{aligned}
+				&\input{tikz/listrule1},\\
+				&\input{tikz/listrule2}
+			\end{aligned}
+		\right\}
+	\end{equation*}
+	This \emph{\ac{fpHRG}} describes doublely linked list of arbitrary length.
+	Firstly, it holds that
+	$\type(L,1) = \{\mathit{next}\}$ and $\type(L,2) = \{\mathit{prev}\}$. But,
+	consider the typed handle of $L$, where $n$, $p$ abbreviate $\mathit{next}$,
+	$\mathit{prev}$ respectively:
+	\begin{center}
+		\input{tikz/typedhandle}
+	\end{center}
+	In order to reveal the abstracted selectors at the tentacle $(L,2)$ only
+	the first production rule can be applied. But this reduces the language to
+	the singleton set of the right hand side of the first production rule.
+	Repeatedly applying the second production rule does not reveal the
+	abstracted selectors. Thus this grammar is not locally concretisable.
+	Adding the production rule
+	\begin{equation*}
+		\label{eq:listrule3}
+		\input{tikz/listrule3}
+	\end{equation*}
+	establishes local concretisability because it is now possible to reveal
+	abstracted selectors at tentacle $(L,2)$ but the generated language (doubly
+	linked lists of arbitrary length) is preserved.
+	
+	The formal definition of local concretisability requires some additional
+	defintions, such as: $(X, i)\rightarrow_{p}(Y,j)$ denotes that for a
+	production rule $p\colon X\rightarrow H$ there is an edge $e\in E_{H}$ such that
+	$\lab_{H}(e) = Y$ and $\ext_{H}(i) = \con_{H}(e)(j)$. This means that after
+	applying the production rule $p$ the tentacle $(X, i)$ morphs (for the
+	connected node) to a tentacle $(Y, j)$. Furthermore let $\overline{G^{X}}$
+	denote the set of production rules in a \emph{\ac{fpHRG}} $G$ for all
+	nonterminals except of $X$, i.e. $\overline{G^{X}} = G\setminus G^{X}$. Then
+	local concretisability can be defined as follows:
+	\begin{definition}[Local Concretisability]
+		$G\in\fpHRG$ is called \emph{local concretisable} if for all nonterminals
+		$X$ there are sub-grammars $G_{1},\dots,G_{\rk(X)}\subseteq G$ such
+		that $\forall i\in\{1,\dots,\rk(X)\}.L_{G_{i}^{X}\cup\overline{G^{X}}}
+		(X^{\bullet})=L_{G}(X^{\bullet})$ and $\forall i\in\{1,\dots,\rk(X)\}.
+		\forall p\in G_{i}^{X}.(X,i)\rightarrow_{p}(a,1)$ for all selectors $a$
+		in $\type(X,i)$.
+	\end{definition}
+
+	The following definition gathers now all \emph{\ac{fpHRG}} for which the
+	language of the typed handle contains only valid \emph{\ac{HC}}. This
+	ensures that not external nodes of the right hand sides are properly typed
+	and follow the properties of \emph{\acp{HC}}.
+	\begin{definition}[Data Structure Grammar]
+		A \emph{\ac{HRG}} $G\in\fpHRG$ is called a \emph{\ac{DSG}}
+		if it is typed and for all \emph{nonterminals} $X\in N$ the language of
+		its typed handle $X^{\circ}$ only contains valid \emph{\aclp{HC}}
+		($L_{G}(X^{\circ})\subseteq\HC$) and for all inner nodes of right hand
+		sides in $G^{X}$ it holds that there is one outgoing edge for every
+		selector in $\bigcup_{1\leq i\leq\rk(X)}\type(X,i)$.
+	\end{definition}
+	Note that it is assumed that only the selectors exist which are gathered
+	in the different types of the tentacles of the nonterminal. If more
+	selectors exist they can be simply attached to every node and point to
+	$v_{\text{null}}$ to ensure that the \emph{\acp{HG}} of the language are
+	still valid \emph{\acp{HC}}. Again let $\DSG$ denote the set of all
+	\emph{\acp{DSG}} over $\Sigma_{N}$ and $\PI$. Additionally, it is generally
+	assumend that right hand sides of production rules do not contain any edges
+	labeled with variables or placeholders (thus, $\rhs(G)\subseteq
+	\mathit{HG}^{\PI}_{\Sigma_{N}\setminus (\Var\cup\mathbb{T})}$). And
+	therefore all inner nodes are properly typed which means that they have
+	edges for all selectors that exist within the context of the nonterminal
+	(i.e. the union of the types of all tentacles).
+	In the following \emph{\aclp*{HAG}} are defined which are \emph{\acp{DSG}}
+	that additionally provide the properties introduced above:
+	\begin{definition}[Heap Abstraction Grammar]
+		$G\in\DSG$ is called a \emph{\ac{HAG}} over $\Sigma_{N}$ if $G$ provides
+		the following properties:
+		\begin{enumerate}
+			\item \emph{Productivity}
+			\item \emph{Increasingness}
+			\item \emph{Local Concretisability}
+		\end{enumerate}
+	\end{definition}
+	This is no real restriction since the following theorem can be derived from
+	the results of \cite{LocalGreibachNormalForm}:
+	\begin{theorem}
+		For every \emph{\ac{DSG}} a \emph{\ac{HAG}} can be constructed which is
+		equivalent regarding the language of \emph{\acp{HG}}.
+	\end{theorem}
+

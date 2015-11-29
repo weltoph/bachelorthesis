@@ -1,0 +1,17 @@
+\begin{tikzpicture}
+	\node[he] (lhs) {$B$};
+	\node[node, right=1cm and 2cm of lhs] (v2) {};
+	\node[node, ext, above right=of v2] (v1) {$1$};
+	\node[node, below right=of v1] (v3) {};
+	\node[he, below=of v3] (e2) {$B$};
+	\node[he, below=of v2] (e1) {$B$};
+	\node[node] (null) at (e1-|v1) {$v_{\text{null}}$};
+
+	\draw[very thick, ->, shorten >=0.3cm, shorten <=0.5cm] (lhs) to (v2);
+	\draw[sel] (v1) to node[left] {$l$} (v2);
+	\draw[sel] (v1) to node[right]{$r$} (v3);
+	\draw[connector] (v3) to node[left]{$1$} (e2);
+	\draw[connector] (v2) to node[right]{$1$} (e1);
+	\draw[connector] (e1) to (null);
+	\draw[connector] (e2) to (null);
+\end{tikzpicture}

@@ -1,0 +1,920 @@
+\subsection{Concretisation}
+	The basic idea of abstraction is to represent multiple heaps in one
+	\emph{\ac{HG}}. Therefore \emph{\acp{HAG}} are used. Recall the
+	initial programming example in Listing \ref{lst:ExampleProgram} where one
+	possible execution is represented in Figure \ref{fig:BinTreeProgLang}.
+	Analysing executions on binary trees of arbitrary size is realised by
+	representing these as one single $B$-labeled hyperedge as follows:
+	\begin{center}
+		\input{tikz/abstractedbintree}
+		\label{tikz:abstractedbintree}
+	\end{center}
+	where the \emph{\ac{fpHRG}} $G$ from page \pageref{eq:G} (which is actually
+	a \emph{\ac{HAG}}) is used to derive the concrete binary trees which are
+	represented by the nonterminal $B$. By applying the different production
+	rules of $G$ all possible binary trees can be derived. Especially since all
+	possible binary trees need to be analysed it is necessary that \emph{every}
+	production rule is used to concretise the nonterminal. This leads to four
+	possible representations, namely the four right hand sides of the production
+	rules in $G$ (as it can be seen in Figure \ref{fig:bintreeconc}).
+	\begin{figure}
+		\begin{center}
+			\begin{tikzpicture}
+				\node (1)             {\input{tikz/conctree1}};
+				\node[right=of 1] (d1) {};
+				\node[right=of d1] (2) {\input{tikz/conctree2}};
+				\node[below=of 1] (d3) {};
+				\node[below=of d3] (3) {\input{tikz/conctree3}};
+				\node (d2) at (d3-|2) {};
+				\node (4) at (3-|2)   {\input{tikz/conctree4}};
+				\node (d4) at (4-|d1) {};
+
+				\draw (d1) to (d4);
+				\draw (d2) to (d3);
+			\end{tikzpicture}
+		\end{center}
+		\caption{First step of concretisation for abstraction of binary trees,
+			note that the permission of the nonterminal propagates to the inserted
+		right hand side}
+		\label{fig:bintreeconc}
+	\end{figure}
+	For the three \emph{\acp{HC}} that still contain nonterminals
+	further concretisation steps have to be applied. But since the given
+	programming language (see section \ref{sec:syntax}) allows only
+	dereferences of depth one (like $x.s$) it is possible to execute all
+	statements (besides fork and join) on these partially abstract
+	\emph{\acp{HC}} just like they are executed on fully concrete
+	\emph{\acp{HC}}. These states of partially abstract \emph{\acp{HC}} are
+	called \emph{admissible} and ensure that all actually from statements
+	referenceable selectors are present in the \emph{\ac{HC}}. For the formal
+	definition another kind of tentacle is examined, the \emph{reduction
+	tentacle}. Reduction tentacles are tentacles for which in every
+	concretisation there is no outgoing edge for the identified node. This can
+	be formally defined as follows:
+	\begin{definition}[Reduction Tentacle]
+		Let for the tentacle $(X,i)$ $v_i^{\bullet}\in V_{X^{\bullet}}$ be the 
+		node such that $\con_{X^{\bullet}}(e)(i) = v_{i}^{\bullet}$ for the only
+		edge $e\in E_{X^{\bullet}}$ with $\lab_{X^{\bullet}}(e) = X$ is called
+		a \emph{reduction tentacle} if
+		\begin{equation*}
+			\forall H\in L(X^{\bullet}).\out(v_{i}^{\bullet}) = \emptyset
+		\end{equation*}
+	\end{definition}
+	For typed nonterminals another characterisation of reduction tentacles is
+	that the type of the tentacle $(X,i)$ is empty ($\type(X,i) = \emptyset$).
+	As seen in \cite{LocalGreibachNormalForm} reduction tentacles can be
+	determined by a syntactical analysis of the used production rules.
+	Admissibility can be defined in terms of \emph{violation points} where
+	violation points are tentacles that hide possibly accessible selectors.
+	Formally:
+	\begin{definition}[Violation Point]
+		For $H\in\HC$ the tupel $(e, i)$ with $e\in E_{H}$, $\lab_{H}(e)\in N$
+		and $1\leq i \leq \rk(\lab_{H}(e))$ is called a violation point, if $e$
+		hides accessible selectors (i.e. there exists $e'\in E_{H}$ such that
+		$\lab_{H}(e')\in\Var$ and $\con_{H}(e')(1) = \con_{H}(e)(i)$ and
+		$(\lab_{H}(e),i)$ is no reduction tentacle.
+	\end{definition}
+	A \emph{\ac{HC}} $H$ is called \emph{admissible} if there is no violation
+	point in $H$, the set of admissible \emph{\acp{HC}} is denoted by $\AHC$.
+	Reconsider the abstracted representation of binary trees on page
+	\pageref{tikz:abstractedbintree} which is not admissible since the tentacle
+	$(B,1)$ hides the selectors $l$ and $r$ but those are actually referenceable
+	by $\mathit{curr}.l$ or $\mathit{curr}.r$ respectively (when $b$ is the
+	edge of the heap such that $\lab(b) = B$ then $(b,1)$ is the violation
+	point). On the other hand the heap representations in Figure
+	\ref{fig:bintreeconc} are admissible since the violation point is resolved
+	by applying concretisation. In the following resolving violation points and
+	therefore reestablishing admissibility is formalised for a \emph{\acp{HAG}}
+	$G$ in the \enquote{re-admissibility} function
+	\begin{equation*}
+		\rea_{G}\colon\HCN\rightarrow\mathbb{P}(\AHC)
+	\end{equation*}
+	which maps possible abstracted \emph{\acp{HC}} to the set of admissible
+	\emph{\acp{HC}} that arise by resolving violation points by applying
+	production rules. But in fact not \emph{every} production rule have to be
+	applied, recall therefore the \emph{\ac{fpHRG}} $G'$ of doubly linked list
+	from page \pageref{eq:G'}. Imagine now a program that traverses doubly
+	linked lists of arbitrary length from the last element to the first. In
+	order to resolve the violation point caused by the tentacle $(L,2)$ the
+	second production rule does not remove the violation point.
+	But the production rule which was added to establish local
+	concretisability can be used to resolve the violation point. Additionally,
+	it can easily be seen that in order to establish admissibility for
+	\emph{\acp{HC}} different nonterminals have to be concretised (simply
+	imagine a node that is the head of a doubly linked list as well as the root
+	of a binary tree and is therefore connected to a nonterminal $B$ and a
+	nonterminal $L$).  Since the parts that results from concretisation of
+	nonterminals are only connected via the nodes connected to the nonterminals
+	and apart from that are independent it can be seen that the order in which
+	\emph{\acp{HR}} are applied is insignificant to the resulting
+	\emph{\ac{HG}}. This property is called \emph{confluence} and defined as
+	follows:
+	\begin{definition}[Confluence]
+		For $H\in\HGN$ with $e_1,e_2\in E_{H}$, $e_1\neq e_2$ and $\lab_{H}(e_1),
+		\lab_{H}(e_2)\in N$ it holds for two production rules
+		$p_1:\lab_{H}(e_1)\rightarrow H_1$, $p_2:\lab_{H}(e_2)\rightarrow H_2$
+		that
+		\begin{equation*}
+			H[e_1/H_1][e_2/H_2] = H[e_2/H_2][e_1/H_1]
+		\end{equation*}
+	\end{definition}
+	As stated in \cite[p. 105]{HandbookGraphGrammars} \emph{\acp{HR}} always are
+	confluent. And from this follows the following lemma (for details see
+	\cite{fmsd}):
+	\begin{lemma}
+		\label{theo:overapprox}
+		For $G\in\HAG$, $H\in\HCN$, $e\in E_{H}$ and $\lab_{H}(e)\in N$ holds
+		that:
+		\begin{equation*}
+			L_{G}(H) = \bigcup_{\lab_{H}(e)\rightarrow K} L_{G}(H[e/K])
+		\end{equation*}
+	\end{lemma}
+	This lemma as well as the definition of local concretisability ensures that
+	applying $\rea_{G}$ still yields all possible \emph{\acp{HC}} that can be
+	concretised from the \emph{\ac{HC}} $rea_{G}$ is applied to.
+\subsection{Abstraction}
+\label{sec:abstraction}
+	After having introduced how to obtain more concrete heap
+	representations from an abstracted representation in the following it is
+	discussed how concrete heap representations are abstracted into more general
+	representations. The idea of such an abstraction is to apply production
+	rules in a backward fashion. Thus identifying the right hand side of a
+	production rule, removing it and replacing it by the according nonterminal.
+	Note that this approach corresponds to the way write access is handed over
+	to forked processes where also subgraphs are replaced by hyperedges. For a
+	comprehensible presentation of this concept recall once
+	again the grammar $G$ from page \pageref{eq:G} and also consider the heap
+	representation and abstraction steps in Figure \ref{fig:bintreeabs}.
+	\begin{figure}
+		\begin{center}
+			\resizebox{\linewidth}{!}{%
+				\input{tikz/bintreeabs}
+			}
+			\caption{Heap representation of a binary tree with possible
+				abstraction step}
+			\label{fig:bintreeabs}
+		\end{center}
+	\end{figure}
+	In this example the right hand side of a production rule is identified in
+	the heap representation (blue mark) and replaced by the nonterminal on the
+	left hand side ($B$). Note that all permissions on the right hand side of a
+	production rule are the same which prevents further abstraction steps
+	although besides permission the structure fits the right hand side of a
+	production rule, namely the third one. But since the permissions differ
+	there is no right hand side which fits this graph. For a formal approach on
+	identifying the right hand side of a production rule \emph{embeddings} are
+	introduced below. Embeddings are functions that identify subgraphs of
+	\emph{\acp{HG}} and are formally defined as follows:
+	\begin{definition}[Embedding]
+		For $K,H\in\HRG$ an \emph{embedding} $\emb = (m_{V}, m_{E})$ of
+		$K$ in $H$ is a pair of functions with $m_{V}:V_{K}\rightarrow V_{H}$
+		and $m_{E}:E_{K}\rightarrow E_{H}$ that preserve the following
+		properties:
+		\begin{center}
+			\begin{tabular}{|ll|}
+				\hline
+				$\lab_{K}(e) = \lab_{H}(m_{E}(e))$        & for all $e\in E_{K}$\\
+				$\perm_{K}(e) = \perm_{H}(m_{E}(e))$      & for all $e\in E_{K}$\\
+				\hline
+				$m_{V}(\con_{K}(e)) = \con_{H}(m_{E}(e))$ & for all $e\in E_{K}$\\
+				$\Lbag\con_{H}(e)\Rbag\cap m_{V}(V_{K}\setminus\Lbag\ext_{K}\Rbag)=
+					\emptyset$                             & for all edges
+					$e\in E_{H}\setminus m_E(E_{K})$\\
+				\hline
+				$m_{E}(e) \neq m_{E}(e')$                 & for all $e,e'\in E_{K}$
+					with $e\neq e'$\\
+				$m_{V}(v)\neq m_{V}(v')$                  & for all $v\in V_{K},
+					v'\in V_{K} \setminus\Lbag\ext_{K}\Rbag$ with $v\neq v'$\\
+				\hline
+			\end{tabular}
+		\end{center}
+	\end{definition}
+	The requirements for the functions of the embedding are as
+	indicated distinguisheable in three topics:
+	\begin{enumerate}
+		\item Preservation, namely of labeling and permissions
+		\item Structure, namely that identified edges agree on which nodes they
+			connect and inner nodes are not connected to any other edge in $H$
+			than those that can be also found in $K$ (since the inner nodes will
+			be replaced by the nonterminal it would be unclear where those edges
+			point to afterwards)
+		\item Injectivity, both the embedding function of edges and nodes are
+			injective with one exception: it is possible to identify multiple
+			external nodes of $K$ with the same node in $H$, this causes the
+			nonterminal to be connected with multiple tentacles to the same node
+	\end{enumerate}
+	With these definitions applying production rules backwards is defined as:
+	\begin{definition}[Hyperedge introduction]
+		For an \emph{\ac{HAG}} $G$, $(p_{\rho}\colon X\rightarrow M)\in G$,
+		$H\in\HC$ and an embedding $(m_{V}, m_{E})$ of $K$ in $H$
+		$H[M/e]\in\HGN$ is defined as follows:
+		\begin{itemize}
+			\item $V_{H[M/e]} = V_{H}\setminus m_{V}(V_{M}\setminus \Lbag
+				\ext_{M}\Rbag)$
+			\item $E_{H[M/e]} = (E_{H}\setminus m_{E}(E_{M}))\biguplus \{e\}$
+			\item $\con_{H[M/e]} = \con_{H}\upharpoonright
+				(E_{H}\setminus m_{E}(E_{M})) \cup \{e\mapsto m_V(\ext_{M})\}$
+			\item $\lab_{H[M/e]} = \lab_{H}\upharpoonright (E_{H}
+				\setminus m_{E}(E_{M})) \cup \{e\mapsto X\}$
+			\item $\ext_{H[M/e]} = \ext_{H}$
+			\item $\perm_{H[M/e]} = \perm_{H}\upharpoonright (E_{H}
+				\setminus m_{E}(E_{M}))\cup \{e\mapsto \rho\}$
+		\end{itemize}
+	\end{definition}
+	With these definitions an abstraction function
+	\begin{equation*}
+		\abs_{G}':\HGN \rightarrow\mathbb{P}(\HGN)
+	\end{equation*}
+	for an \emph{\ac{HAG}} $G$ is defined which maps an \emph{\ac{HG}}
+	$H\in\HGN$ to the set of those \emph{\acp{HG}} that result by introducing
+	successively hyperedges until there is no further embedding for any right
+	hand side of any production rule in $G$. Note firstly that this way of
+	abstracting terminates because $G$ is increasing and thus every abstraction
+	step results in a smaller \emph{\ac{HG}} and secondly that abstraction
+	might possibly lead to a set of \emph{\acp{HG}} instead of a single one as
+	the following example illustrates. Consider therefore the \emph{\ac{fpHRG}}
+	$G'$ from page \pageref{eq:G'} and the following example of abstraction
+	steps where every arrow indicate the introduction of an hyperedge.
+	\begin{center}
+		\resizebox{\linewidth}{!}{%
+			\begin{tikzpicture}
+				\node (1) {\input{tikz/backwardconfluent1}};
+				\node[below left =of 1] (2) {\input{tikz/backwardconfluent5}};
+				\node[below right=of 1] (3) {\input{tikz/backwardconfluent3}};
+				\node[below =of 2]      (4) {\input{tikz/backwardconfluent2}};
+				\node[below =of 3]      (5) {\input{tikz/backwardconfluent4}};
+				\draw[->, thick] (1) to (2);
+				\draw[->, thick] (1) to (3);
+				\draw[->, thick] (2) to (4);
+				\draw[->, thick, dotted] (2) to (5);
+				\draw[->, thick] (3) to (4);
+				\draw[->, thick] (3) to (5);
+			\end{tikzpicture}
+		}
+	\end{center}
+	Note that the dotted arrow is only valid if the third production rule (on
+	page \pageref{eq:listrule3}) which established local concretisability is
+	added to $G'$. Nevertheless there are two \emph{\acp{HG}} that can not be
+	anymore abstracted which are obtained by introducing hyperedges repeatedly.
+	As stated for \emph{\ac{HR}} it holds that two (and therefore by an
+	inductive argument arbitrary many) production rules are
+	applied and there is exactly one resulting \emph{\ac{HG}}, but for backward
+	application there are possible multiple resulting \emph{\acp{HG}} and it
+	depends on which abstraction is carried out first. Consider now adding
+	additionally the production rule
+	\begin{equation*}
+		\label{eq:listrule4}
+		\input{tikz/listrule4}
+	\end{equation*}
+	to $G'$. This causes the above considered abstraction to result in a
+	singleton set because the left hand leaf of this \enquote{abstraction tree}
+	can be further abstracted to the right hand leaf. The property that
+	abstraction results in a single possible \emph{\ac{HG}} is called
+	\emph{backward confluence} and a \emph{\ac{HAG}} is called backward
+	confluent if every abstraction for an arbitrary \emph{\ac{HG}} results in a
+	single \emph{\ac{HG}}. For a backward confluent \emph{\acp{HAG}} $G$ the
+	abstraction function $\abs_{G}\colon \HGN\rightarrow\HGN$ is defined as the
+	mapping from every \emph{\ac{HG}} $H$ to the single element in
+	$\abs_{G}'(H)$. It is unclear if it is possible to establish backward
+	confluence for \emph{\acp{HAG}}, but it is decideable if an \emph{\ac{HAG}}
+	is backward confluent (for details see \cite{InductivePredicates}).
+
+	\subsection{Abstract Semantics}
+	\label{sec:abstractsemantics}
+	As already mentioned above and also explored in \cite{fmsd} it is possible
+	to model the semantics of statements (except fork and join) on partially
+	abstracted but admissible \emph{\acp{HC}} because the admissibility ensures
+	that all referenceable objects and selectors are actually currently
+	available in the heap representation. But it is possible that the execution
+	of such a statement invalidates the admissibility because other selectors
+	can become
+	referenceable because a variable might get assigned a new value. This
+	inadmissibility has to be resolved in order to continue the analysis of
+	further statements. In order to resolve inadmissibilities the heap
+	representation is at first completely abstracted and subsequently as far as
+	necessary concretised to reestablish admissibility. The first abstraction
+	step is used in order to minimise the heap representation because $\rea_{G}$
+	stops as soon as admissibility is established.
+	With these intuitions the abstract semantics (denoted by $\btr$) of pointer
+	operations (which are all statements except of fork, join and assignment of
+	process identifiers) can be given as follows:
+	\begin{prooftree}
+		\AxiomC{$(S, H)\rhd(S',I)$}
+		\AxiomC{$H'\in\rea_{G}(\abs_{G}(I))$}
+		\BinaryInfC{$(S,H)\btr(S',H')$}
+	\end{prooftree}
+	For the semantics of the assignment of process identifiers the concrete
+	semantics also transfer to partially abstracted \emph{\acp{HC}} since the
+	definitions given for the modifications of permissions in Section
+	\ref{sec:graphtrans} are applicable for nonterminals as well, thus no
+	changes are required.
+
+	For join and fork on the other hand some modifications in semantics have to
+	be introduced. At first the postponed definitions of \emph{reachability} and
+	\emph{border} nodes are addressed and afterwards the semantics of fork and
+	join are applied on partially abstracted \emph{\acp{HC}}.
+
+	The set of selectors that are reachable from an initial node are those
+	selectors that can be reached via moving along other selectors. For example
+	consider the \emph{\ac{HC}} described in Figure \ref{fig:reachability}.
+	\begin{figure}[h]
+		\begin{center}
+			\input{tikz/reachability}
+		\end{center}
+		\caption{simple \emph{\ac{HC}} to illustrate reachability}
+		\label{fig:reachability}
+	\end{figure}
+	The set of reachable edges from $v_{1}$ is $\{e_{1}, e_{2}, e_{4}, e_{5}\}$
+	since from $v_{1}$ $e_{1}$ is directly reachable and after moving along
+	$e_{1}$ the edge $e_{2}$ is reachable and so forth. On the other hand
+	$e_{3}$ is not reachable from $v_{1}$ since the selector points in the
+	\enquote{wrong} direction. In order to formalise these movements along the
+	edges in $H\in\HGN$ the notion of a path $\pi$ is introduced as
+	\begin{equation*}
+		\pi \in (\mathbb{N}\times E_{H}\times \mathbb{N})^{\ast}
+	\end{equation*}
+	where it holds for $\pi(k) = (i,e,j)$ and $\pi(k+1) = (i',e',j')$ that
+	$\con_{H}(e)(j) = \con_{H}(e')(i')$ for all $1\leq k \leq (|\pi| - 1)$. This
+	describes undirected paths, i.e.
+	\begin{equation*}
+		(1, e_{1}, 2)(2, e_{3}, 1)
+	\end{equation*}
+	is a valid path although $e_{3}$ is actually not reachable from $v_{1}$.
+	Thus, not all paths agree with the intuition of reachability. The intuition
+	of reachability is easy for selectors which are interpreted as directed
+	edges. For nonterminals reachability is understood as the possibility to
+	concretise this nonterminal in a way such that there is a reachable path
+	along selectors between the connected nodes. Formally defined is
+	reachability by the use of the term bridge as follows:
+	\begin{definition}[Reachability]
+		A bridge $(i, X, j) \in \br(N\cup\Sel)$ is called \emph{reachable}
+		for $G\in\HAG$ if $i = 1, j = 2, X\in\Sel$ or if $X\in N$ and there is
+		$H\in L_G(X^{\bullet})$ such that there is a reachable path $\pi$ from
+		$v_i^{\bullet}$ to $v_j^{\bullet}$.
+	\end{definition}
+	Note that it is assumed that the set $\Sel$ is ranked by the function that
+	maps all selectors to $2$ to ensure that $\br(N\cup \Sel)$ is defined. A
+	path $\pi$ is called reachable if every used bridge is reachable. Let
+	$\Path(u,v)$ denote all paths that start in $u$ and end in $v$, formally:
+	\begin{equation*}
+		\Path(u,v) = \left\{\pi\mid
+			\begin{aligned}
+					&\pi\text{ is a path}\\
+					&\land(i,e,j) =\pi(1)\land\con_{H}(e)(i)=u\\
+					&\land(i',e',j') =\pi(|\pi|)\land\con_{H}(e')(j') = v
+			\end{aligned}
+		\right\}
+	\end{equation*}
+
+	Furthermore it is possible to compute all reachable bridges over
+	nonterminals in a \emph{\ac{HAG}} over syntactical analysis of the
+	\emph{\ac{HAG}} as the following lemma states:
+	\begin{lemma}
+		For $G\in\HAG$ the set $\RB(G)$ denotes all \emph{reachable}
+		\emph{bridges} in $G$. $\RB(G)$ can be computed by syntactical analysis
+		of $G$.
+	\end{lemma}
+	\begin{proof}
+		Let
+		\begin{equation*}
+			\RB_{0} =  \{(1,s,2)\mid s\in\Sel\}
+		\end{equation*}	
+		denote the set of all bridges over selectors in the \enquote{right}
+		direction.
+		Let furthermore $\NT(\pi)$ denote all used bridges in the path $\pi$ in
+		an \emph{\ac{HG}} $H$
+		\begin{equation*}
+			\NT(\pi)=
+				\left\{
+					(i,\lab_H(e), j)\mid (i,e, j)\in\Lbag\pi\Rbag
+				\right\}
+		\end{equation*}
+		then
+		\begin{equation*}
+			\RB_{n+1} = \{(i,X,j)\mid\exists H\in\rhs(G^{X}).
+			\exists \pi\in\Path(\ext_{H}(i),\ext_{H}(j)).\NT(\pi)
+			\subseteq\mathit{RB}_{n}\}
+		\end{equation*}
+		denote the set of all reachable bridges that make use of
+		previously computed reachable bridges which ensure reachable paths. For
+		example, $\RB_{1}$ is the set of bridges over selectors and those
+		nonterminals for which a right hand side of a production rule exists
+		where a path along selectors connects $\ext_{H}(i)$ and $\ext_{H}(j)$.
+		It is easy to see that this iteration is monotone and since the set of
+		all bridges for a finite set of nonterminals $N$ and selectors $\Sel$ is
+		finite as well it terminates after finitly many steps. By induction over
+		$n$, the depth of applied concretisation steps for nonterminals until a
+		reachable path is found it follows that the fixpoint of this iteration
+		is indeed $\RB(G)$.
+	\end{proof}
+	Combining this result with a breadth-first search that computes stepwise all
+	possible paths of finite length and with the set $\RB(G)$ it can be tested
+	if these paths are reachable. It follows that for a finite graph all
+	reachable paths can be computed. Let $\CPath_{H}(v)$ denote all reachable
+	paths in $H$ starting in the node $v$:
+	\begin{corollary}
+		For $H\in\HGN$, $G\in\HAG$ and $v\in V_{H}$ the set $\CPath_{H}(v)$ can
+		be computed by syntactical analysis of $G$ and a structural analysis of
+		$H$.
+	\end{corollary}
+	Another point has to be taken into account before the set of reachable edges
+	can be formally defined. It is illustrated by the following production rule:
+	\begin{equation*}
+		\label{eq:reachex}
+		\input{tikz/reachex}
+	\end{equation*}
+	It is evident that the bridges $(1,T,2), (2,T,1)$ are both not reachable.
+	But also both tentacles $(T,1), (T,2)$ are not reduction tentacles since
+	both actually abstract selectors. If any reachable path from a starting node
+	$u$ to a node $v$ exists such that $v$ is connected to a $T$-labeled edge
+	$e$, then $e$ has to be included in the set of reachable edges, since it
+	abstracts edges which can actually be reached.
+	With this in mind the set of reachable edges from a node $v$ in a
+	\emph{\ac{HG}} $H$ denoted by $\reach_{\text{abs}}^{H}(v)$ can be formally
+	defined in two steps. First all edges of reachable paths are gathered in
+	\begin{equation*}
+		P = \{e \mid (i, e, j)\in\Lbag\pi\Rbag,\pi\in\CPath_{H}(v)\}
+	\end{equation*}
+	and secondly all nonterminals where parts of the concretisating graphs can
+	be reached in
+	\begin{equation*}
+		D = 
+		\left\{e\mid
+			\begin{aligned}
+				&\lab_{H}(e)\in N, 1\leq i\leq \rk(\lab_{H}(e)).
+				\exists e'\in P.\con_{H}(e)(i)\in\Lbag\con_{H}(e')\Rbag\\
+				&\land (\lab_{H}(e),i)\text{ is no reduction tentacle}
+			\end{aligned}
+		\right\}
+	\end{equation*}
+	Then the set of reachable edges is defined as:
+	\begin{equation*}
+		\reach_{\text{abs}}^{H}(v) = P\cup D
+	\end{equation*}
+	and let
+	\begin{equation*}
+		\reach_{\text{abs}}^{H}(v_1,\dots,v_n) = \bigcup_{1\leq i\leq n}
+		\reach_{\text{abs}}^{H}(v_i)
+	\end{equation*}
+	denote the reachable nodes from multiple initial nodes.
+	This concludes computing the reachable edges in a partially abstract
+	\emph{\ac{HG}}. As mentioned before the computation of reachable edges for
+	fully concrete \emph{\acp{HG}} relies on the reachability in the abstracted
+	case and is intuitively achieved by abstracting the concrete \emph{\ac{HG}},
+	computating the set of reachable edges, concretising with the same sequence
+	of production rules that is used for the abstraction to rebuild the initial
+	\emph{\ac{HG}}. The set of reachable edges in the concrete
+	\emph{\ac{HG}} are all edges that arise from reachable edge in the
+	abstraction. Therefore \emph{production sequences}
+	are introduced as sequence of tupel of production rules and edges. A
+	production sequence denotes the way a heap is transformed via production
+	rules. This means it is possible to revert abstraction steps by saving
+	tupels of the production rules and the introduced hyperedges that arise from
+	backward application of that production rule and applying this sequence in
+	reversed order to the abstracted \emph{\ac{HG}} yields again the original
+	concrete \emph{\ac{HG}}. Let $\pi$ be a finite production
+	sequence then $\pi^{-1}$ denotes the reversed production sequence.
+	Furthermore let $\pi\upharpoonright E$ denote the production sequence that
+	contains all production rules in $\pi$ that are applied to edges in $E$ or
+	edges that are concretised from $E$ (in possibly multiple applications of
+	production rules). Let furthermore $H\xRightarrow{\pi} Q$ denote
+	the application of a sequence of production rules $\pi$. Especially it holds
+	for the production sequence $\pi$ which is used to obtain $\abs_{G}(H)$ that
+	$\abs_{G}(H)\xRightarrow{\pi^{-1}} H$.  Additionally, let $H$ be a partially
+	abstracted \emph{\ac{HG}} then let $E_{\pi}$ for an production sequence
+	$\pi$ denote the set of all edges that arise from concretisation steps
+	applied to edges of $E$ and edges that are originally obtained from edges in
+	$E$.
+	\begin{equation*}
+		E_{\pi} = \{e\mid (H\upharpoonright E)\xRightarrow
+			{\pi\upharpoonright E}H', e\in E_{H'}\}
+	\end{equation*}
+	With these notions reachability for concrete hypergraphs can be defined
+	in context of a \emph{\ac{HAG}} $G$ as follows:
+	\begin{equation*}
+		\reach_H(v_{1},\dots,v_{n}) = (\reach_{\text{abs}}^{\abs_{G}(H)}(v_{1},
+		\dots,v_{n}))_{\pi^{-1}}
+	\end{equation*}
+	where the abstraction preserves $v_{1}, \dots, v_{n}$ and $\pi$ denotes the
+	corresponding production sequence of the abstraction.
+
+	For the contracts of the forked programs there is one difference to the
+	concrete semantics which is that a partially abstract precondition
+	concretises to various possible \emph{\acp{HC}} (similar to the contracts
+	presented in \cite{ProcedureSummaries}). Just like concretisation
+	of nonterminals demands that all production rules that establish
+	admissibility are analysed (since the information from which of these
+	concrete \emph{\acp{HC}} it is abstracted from is lost) there are also
+	multiple postconditions that might apply after the execution of a program
+	depending on the actual structures the partially abstract precondition
+	concretises to. Formally, this leads to a set of contracts for a program $m$
+	where one precondition leads to multiple postconditions:
+	\begin{equation*}
+		\Cont_{\text{abs}}(m)\subseteq
+		\mathbb{P}((\HGN\times\mathbb{P}(E)\times
+		\mathbb{P}(\mathit{HG}^{\PI'}_{\Sigma_{N}'})))
+	\end{equation*}
+	where for every $C = (P_{C}, E_{C}, \mathbb{Q}_{C})\in\Cont_{\text{abs}}(m)$
+	holds that $E_{C}\subseteq E_{\mathit{WR}}^{P_{C}}$.
+	Furthermore there is for every program $m$ and
+	precondition $P$ maximal one contract $C\in\Cont_{\text{abs}}(m)$. Because
+	if there are two contracts $C,C'\in\Cont_{\text{abs}}(m)$ with
+	$P_C\afiso P\afiso P_{C'}$ then those contracts can be united to a contract
+	$C'' = (P, E_{C}\cup E_{C'}, \mathbb{Q}')$ such that $\mathbb{Q}'$ contains
+	all possible results from executions of $m$ starting from the initial
+	heap state (which is obtained from the precondition and the set of
+	alternable edges the same way it is described in Section \ref{sec:join}
+	with straightforward ajustments for nonterminals).
+
+	As already introduced the intuition for border nodes is that these nodes
+	are part of the subgraph for which the access tickets are transferred to the
+	newly forked process but are also still part and accessible (with limitation
+	to some selectors) to the forking process.
+	For the formal definition let $H$ be the current heap representation, 
+	$C = (P_C, E_C, \mathbb{Q}_C)$ be a contract for the forked process, $R$ be
+	the reachable subgraph from the actual parameter of the fork statement and
+	it holds that $R\afiso P_C$. Then the set of border nodes can be defined as
+	follows:
+	\begin{equation*}
+		\border_{\text{abs}}^{H}(C) = \left(\bigcup_{e\in E_{C}}\Lbag\con_{H}(e)
+		\Rbag\right)\bigcap\left(\bigcup_{e\in E_{H}\setminus E_{C}}
+		\Lbag\con_{H}(e)\Rbag\right)
+	\end{equation*}
+	which leads to the following transformation of the heap representation of
+	the forking process:
+	\begin{equation*}
+		H' = H[\downarrow t][\setminus E_{C}][+_\mathit{WR}N_{\{t\}}
+		\rightrightarrows \mathit{enum}_{b_{C}(H)}]
+		[(E_{P_{C}}\setminus E_{C}) - \{t\}]
+	\end{equation*}
+	where $t$ denotes the process identifier that identifies the newly forked
+	process initially.
+	With these definitions the abstract semantics for the fork statement can be
+	given as follows where
+	$R=(H\upharpoonright \reach_{\text{abs}}(\llbracket x_{1}\rrbracket_{H},
+		\dots,\llbracket x_{n}\rrbracket_{H}))$
+	\begin{prooftree}
+		\AxiomC{$(P_{C},E_{C},\mathbb{Q}_{C})\in\Cont_{\text{abs}}(m)$}
+		\AxiomC{$P_{C} \afiso R$}
+		\AxiomC{$H'' \in \rea_{G}(\abs_{G}(H'))$}
+		\TrinaryInfC{$(t=\text{fork}(m(x_{1},\dots,x_n)),H)\btr(\varepsilon,H'')
+		$}
+	\end{prooftree}
+
+	Lastly, the join statement is dealt with almost the same as in the
+	concrete semantics. Recall therefore the two transformations steps for one
+	precondition $Q$ from page \pageref{eq:joinH}:
+	\begin{equation*}
+		Q'_{1}=Q_{C}[\downarrow\mathit{enum}_{\mathit{Var}'_{\text{thread}}}(1)]
+		\dots[\downarrow\mathit{Var}'_{\text{thread}}
+		(|\mathit{Var}'_{\text{thread}}|)]
+	\end{equation*}
+	and
+	\begin{equation*}
+		Q'_{2} = Q'_{1}[\setminus (E^{Q'_{1}}_{\mathit{RD}}\cup
+			E^{Q'_{1}}_{\mathit{RD^{\ast}}})]
+	\end{equation*}
+	then there are again two transition rules for the join statement where
+	one deals with fully returned read tickets and the other one with lost
+	read tickets. Especially \emph{every} postcondition $Q\in\mathbb{Q_C}$
+	is examined (since every postcondition describes a valid execution of
+	the program from the initial heap state).
+	\begin{prooftree}
+		\AxiomC{$Q\in\mathbb{Q}_{C}$}
+		\AxiomC{$E^{Q'_{1}}_{\mathit{RD^{\ast}}}\neq\emptyset$}
+		\AxiomC{$H[\downarrow T_{t}]\xRightarrow{N_{T_{t}}\rightarrow Q'_{2}}H'$}
+		\AxiomC{$H''\in\rea_{G}(\abs_{G}(H'))$}
+		\QuaternaryInfC{$(\text{join}(t), H)\btr(\varepsilon,H'')$}
+	\end{prooftree}
+	\begin{prooftree}
+		\AxiomC{$Q\in\mathbb{Q}_{C}$}
+		\AxiomC{$E^{Q'_{1}}_{\mathit{RD^{\ast}}}=\emptyset$}
+		\AxiomC{$H[\leftarrow T_{t}]\xRightarrow{N_{T_{t}}\rightarrow Q'_{2}}H'$}
+		\AxiomC{$H''\in\rea_{G}(\abs_{G}(H'))$}
+		\QuaternaryInfC{$(\text{join}(t), H)\btr(\varepsilon,H'')$}
+	\end{prooftree}
+	where $C = (P_{C}, E_{C}, \mathbb{Q}_{C})$ is the contract which the process
+	is forked by before (which can be obtained by attaching it to the
+	placeholder when the fork statement is executed). Additionally it can be
+	explained in the context of abstraction why it is avoided for the concrete
+	semantics as well as for the abstract semantics to match the shared edges
+	from the postcondition to the ones in the heap representation of the joining
+	process. Because of the applied abstraction it is possible that nonterminals
+	that are identified at the join statement get concretised and abstracted
+	differently through the execution of both processes. To avoid accounting
+	from which nonterminals different edges arose (especially since it had to be
+	done for every forked process individually) it is just dealt with by
+	handing over one read ticket for all shared edges and returning the minimum
+	of this read ticket (nothing if any edge cannot return its ticket completely
+	or everything if every edge can guarantee to return the whole ticket). Also
+	this fits the approach to deal with abstraction and permissions as
+	orthogonal concepts (like it is approached by introducing fully permissive
+	grammars on page \pageref{def:fpg}).
+	Note that again one abstraction and one
+	concretisation step is applied to the resulting heap representation. This is
+	done because after the transformation of permissions as well as inserting
+	the \enquote{$\mathit{WR}$ part} into the heap representation it is possible
+	that the right hand side of production rule can be found in the resulting
+	heap representation which were not present before. Thus, to obtain the
+	most general heap representation the abstraction step is executed and
+	following to obtain the minimal admissible \emph{\acp{HC}} one
+	concretisation step is applied.
+
+	\subsection{Correctness}
+	The main result justifying the taken approach on the presented abstraction
+	is to show that $\btr$ is an over-approximation of the transition relation
+	$\rhd$. Therefore it is assumed that abstraction and concretisation relies
+	on a backward confluent \emph{\ac{HAG}} $G$ and abstract and concrete
+	contracts are connected in the following way: For every
+	$C = (P_{C}, E_{C}, Q_{C})\in\Cont(m)$ exists
+	$C' = (P_{C'}, E_{C'}, \mathbb{Q}_{C'})\in\Cont_{\text{abs}}(m)$ such that
+	\begin{enumerate}[label=(\roman*)]
+		\item $P_{C}\in L_{G}(P_{C'})$, which implies there is a production
+			sequence $\pi$ such that $P_{C'}\xRightarrow{\pi}P_{C}$
+		\item  $P_{C'}\upharpoonright E_{C'}
+			\xRightarrow{\pi\upharpoonright E_{C'}}P_{C}\upharpoonright E_{C}$
+		\item there is $Q'\in\mathbb{Q}_{C'}$ with $Q_{C}\in L_{G}(Q')$
+	\end{enumerate}
+	This intuitively means that
+	\begin{enumerate*}[label=(\roman*)]
+		\item preconditions of concrete contracts arise from concretisation of 
+			preconditions of abstract contracts, where
+		\item every edge in the alternable set of the concrete contract arise
+			from concretisation of edges in the alternable set of the abstract
+			contract and
+		\item the postcondition of the concrete contract can be found by
+			concretising one of the postconditions of the abstract contract.
+	\end{enumerate*}
+	Note further that the order of $\pi$ does not matter due to the confluence
+	property of \emph{\ac{HR}}, but a previous \emph{\ac{HR}} can expose the
+	hyperedges which later production rules are applied to. This might cause
+	dependencies between the production rules. A subsequence $\chi$ of
+	$\pi$ denoted as $\chi\prec\pi$ is a sequence of production rules such that
+	these production rules appear also in $\pi$.
+
+	These assumptions are essential requirements for the presented analysis and
+	abstraction approach of this paper. Because the actual analysis is actually
+	designed for abstracted representation, it is expected that the set of
+	abstracted contracts is computed first and the concrete contracts are simply
+	generated by concretisation of abstracted contracts. This justifies that
+	even for the concrete semantics a corresponding abstracted contract exists
+	for every concrete contract. This is necessary because the border nodes for
+	the concrete semantics are computed by abstracting and computing the border
+	nodes for the abstracted case and concretise by the sequence of production
+	rules used for the abstraction. This is necessary to ensure that the
+	abstract semantics overapproximate the concrete semantics. This approach
+	agrees with the intuition of the border
+	nodes in the concrete semantics because the computation of border nodes in
+	the abstracted \emph{\ac{HC}} is a superset of the actual border nodes.
+	Recall therefore the intutition of border nodes for the
+	concrete semantics as all nodes that are connected to an edge for which
+	$\mathit{WR}$ permission is transferred and an edge that is still present 
+	within the heap representation of the forking process. Let $H$ be this heap
+	representation and $C = (P_{C}, E_{C}, Q_{C})$ the contract by which the
+	fork statement is executed then the intuition translates to the following
+	set:
+	\begin{equation*}
+		\mathit{IB}_{H}(C) = \{v\mid \exists e\in E_{C}.\exists e'\in E_{H}
+			\setminus E_{C}.v\in\Lbag\con_{H}(e)\Rbag
+			\cap\Lbag\con_{H}(e')\Rbag\}
+	\end{equation*}
+	Then the following lemma states that this computation
+	ensures that the border nodes are a superset of the nodes that are
+	intuitively understood as border nodes:
+	\begin{lemma}[Border Lemma]
+		For $C\in\Cont(m)$ and $C'\in\Cont_{\text{abs}}(m)$ such that for $C$ and
+		$C'$ $(i),(ii),(iii)$ holds that
+		$\mathit{IB}_{H}(C)\subseteq\border_{H}(C')$
+	\end{lemma}
+	Firstly one additional property for
+	\emph{\ac{HR}}, namely \emph{context-freeness}, is presented in
+	the following because it motivates some of the used results for the
+	presented proofs. But in order to avoid some formal machinery
+	context-freeness is only presented informally, for formal details as well as
+	the proof that \emph{\ac{HR}} actually is context-free see
+	\cite[pp. 111-115]{HandbookGraphGrammars}: The deriveration of nonterminals
+	is context-free in the sense that it is independent from the rest of the
+	\emph{\ac{HG}}. This means, first applying production rules to nonterminals
+	and glueing the resulting hypergraphs together yields the same result as
+	glueing the hypergraphs together and applying the same production rules
+	afterwards. In the following the proof for the \emph{Border Lemma} is
+	presented which actually makes use of context-freeness property:
+	\begin{proof}[Border Lemma]
+		Let $v\in\mathit{IB}_{H}(C)$ be arbitrarily chosen. It follows that
+		$v\in\border_{H}(C)$ by the following argument:
+		Since $v\in\mathit{IB}_{H}(C)$ it follows that there is $e\in E_{C}$ and
+		$e'\in E_{H}\setminus E_{C}$ such that
+		$v\in\Lbag\con_{H}(e)\Rbag\cap\Lbag\con_{H}(e')\Rbag$. Let furthermore
+		$C'$ denote the abstract contract to $C$ for which $(i), (ii), (iii)$
+		holds. By the context-freeness property of \emph{\ac{HR}} and because
+		$(ii)$ holds follows that
+		there are $e_{\text{abs}}\in E_{C'}$ and $e'_{\text{abs}}\in
+		E_{\abs_{G}(H)}\setminus E_{C'}$ such that $e$ arises from concretisation
+		of $e_{\text{abs}}$ and $e'$ from concretisation of $e'_{\text{abs}}$.
+		Therefore it follows immediatly that
+		$v\in\Lbag\con_{\abs_G(H)}(e_{\text{abs}})\Rbag\cap
+		\Lbag\con_{\abs_G(H)}(e'_{\text{abs}})\Rbag$ and hence
+		$v\in\border_{C'}(H)$.
+	\end{proof}
+	This proves that it is viable to rely on abstraction in order to determine
+	the border nodes because it overapproximates the definition of border nodes
+	for the concrete case.
+
+	In order to proof the overapproximation of $\btr$ it is actually shown that
+	if $(S, H)\rhd(S', H')$ that there is $K$ such that
+	$(S,\abs_{G}(H))\btr(S',K)$ and $H'\in L_{G}(K)$. Furthermore the proof is
+	only presented for the fork and join statement and the assignment of process
+	identifier. For all other cases the overapproximation can be shown
+	straigthforwardly by adapting the proof of overapproximation presented in
+	\cite{fmsd}. Especially noteworthy in this context is that the
+	presented $\abs_{G}$ and $\rea_{G}$ functions of this paper with Theorem
+	\ref{theo:overapprox} and that every backwards application of a production
+	rule can be undone by forwards application of the same production rule
+	satisfy the requirements for the concretisation and abstraction functions
+	demanded by the \emph{Correctness Theorem} in \cite[p. 19]{fmsd}.
+
+	For the following proofs of overapproximation for fork and join some general
+	arguments are presented in front to reduce the formal complexity of the
+	actual argumentation:
+	\begin{enumerate}[label=(\Roman*)]
+		\item \label{arg:strictpropagation}
+			Because permissions propagate
+			strictly through production rules it follows for a production sequence
+			$\pi$ and two \emph{\acp{HG}} $H,Q$ with $H\xRightarrow{\pi} Q$ and a
+			permission $\rho$ that
+			\begin{equation*}
+				(E^H_{\rho})_{\pi} = E^{Q}_{\rho}
+			\end{equation*}
+			because every nonterminal with permission $\rho$ can only concretise
+			to edges with permission $\rho$ and also edges with permission $\rho$
+			can only be abstracted into nonterminals with permission $\rho$.
+		\item \label{arg:preservation}
+			Since production rules are generally
+			assumed to not abstract placeholder and variables it can be assured
+			that nodes that are identified by variables are preserved by
+			abstractions and introduced placeholder are preserved through
+			concretisation.
+	\end{enumerate}
+
+	\begin{lemma}[Overapproximation of Fork]
+		For a backward confluent $G\in\HAG$, $H,H'\in\HC$ and
+		$(t=\text{\textbf{fork}}(m(x_{1},\dots,x_{n})),H)\rhd(\varepsilon, H')$
+		it holds that there is $I\in\HCN$ with
+		$(t=\text{\textbf{fork}}(m(x_1,\dots,x_n)),\abs_{G}(H))
+			\btr(\varepsilon,I)$ and $H'\in L_{G}(I)$.
+	\end{lemma}
+	\begin{proof}
+		Let $C$ be the contracted by which
+		$(t=\text{\textbf{fork}}(m(x_{1},\dots,x_{n})),H)\rhd(\varepsilon, H')$
+		is computed. Then by the definition of $\rhd$ it follows that
+		$H' = H[\downarrow t][\setminus E_{C}]
+		[+_{\mathit{WR}}N_{\{t\}}\rightrightarrows
+		\enum_{b_{C}(H)}][(E_{P}\setminus E_{C})-\{t\}]$. Let $C'$ be the
+		abstract contract such that $C$ and $C'$ satisfy $(i), (ii), (iii)$.
+		With this it is shown that $H'\in L_{G}(\abs_{G}(H)[\downarrow t]
+		[\setminus E_{C'}][+_\mathit{WR}N_{\{t\}}
+		\rightrightarrows \mathit{enum}_{b_{C'}(\abs_{G}(H))}]
+		[(E_{P_{C'}}\setminus E_{C'}) - \{t\}])$ by the following argument:
+		Obviously there is a production sequence $\pi$ such that
+		$\abs_{G}(H)\xRightarrow{\pi}H$. Furthermore the permissions in $H$ and
+		in $\abs_{G}(H)$ are altered both by $[\downarrow t]$ the same way, also
+		because placeholders cannot be abstracted (by argument (II)) and because
+		the permission propagate through concretisation (by argument (I)) it
+		follows that there is a production sequence $\pi'$ that mirrors $\pi$ but
+		adapts the permissions of production rules according to the edges these
+		production rules are applied to such that $\abs_{G}(H)[\downarrow t]
+		\xRightarrow{\pi'}H[\downarrow t]$. Secondly, it can be assured by the
+		definition of
+		$\reach_{H}$ and because $\llbracket x_1\rrbracket_H,\dots,
+		\llbracket x_n\rrbracket_H$ are preserved through abstraction
+		(by argument (II)) that for $R\coloneqq \reach_{\text{abs}}^{\abs_{G}(H)}
+		(\llbracket x_1
+		\rrbracket_{\abs_{G}(H)}, \dots,\llbracket x_n\rrbracket_{\abs_G(H)})$
+		it follows that $\underbrace{\abs_{G}(H)\upharpoonright R}_{P_{C'}}
+		\xRightarrow{\pi'\upharpoonright R} \underbrace{H\upharpoonright
+		\reach_{H}(\llbracket x_1\rrbracket_H,\dots,\llbracket x_n\rrbracket_H)}_
+		{P_C}$. Because of the context-freeness of \emph{\ac{HR}} and property
+		$(ii)$ for $C$ and $C'$ it follows that removing $E_{C'}$ in
+		$\abs_{G}(H)[\downarrow t]$ removes $E_{C}$ in $H[\downarrow t]$.
+		This implies that there is a production sequence $\pi''$ which is the
+		same as $\pi'$ but reduced to those production rules for which the edges
+		are actually present after removing $E_{C'}$ in $\abs_{G}(H)$ such that
+		$\abs_{G}(H)[\downarrow t][\setminus E_{C'}]\xRightarrow{\pi''}
+		H[\downarrow t][\setminus E_{C}]$. Since the border nodes in both cases
+		are determined the same way and (II) holds it follows immediatly that
+		$\abs_{G}(H)[\downarrow t][\setminus E_{C'}]
+		[+_{\mathit{WR}}N_{\{t\}}\rightrightarrows
+		\enum_{b_{C'}(\abs_{G}(H))}]\xRightarrow{\pi''}
+		H[\downarrow t][\setminus E_{C}][+_{\mathit{WR}}N_{\{t\}}
+		\rightrightarrows\enum_{b_{C}(H)}]$. Finally, because of (I) it follows
+		that there is $\pi'''$ such that
+		$\abs_{G}(H)[\downarrow t]
+		[\setminus E_{C'}][+_\mathit{WR}N_{\{t\}}
+		\rightrightarrows \mathit{enum}_{b_{C'}(\abs_{G}(H))}]
+		[(E_{P_{C'}}\setminus E_{C'}) - \{t\}]
+		\xRightarrow{\pi'''}H[\downarrow t][\setminus E_{C}]
+		[+_{\mathit{WR}}N_{\{t\}}\rightrightarrows
+		\enum_{b_{C}(H)}][(E_{P}\setminus E_{C})-\{t\}]$ where $\pi'''$ mirrors
+		$\pi''$ but adapts the permissions of the production rules according to
+		the permissions of the edges they are applied to. This concludes that
+		$H'\in L_{G}(\abs_{G}(H)[\downarrow t]
+		[\setminus E_{C'}][+_\mathit{WR}N_{\{t\}}
+		\rightrightarrows \mathit{enum}_{b_{C'}(\abs_{G}(H))}]
+		[(E_{P_{C'}}\setminus E_{C'}) - \{t\}])$ and because $\rea_{G}$ preserves
+		the language of the \emph{\ac{HG}} it is applied to it follows that there
+		is $I\in\HCN$ such that $(t=\text{\textbf{fork}}(m(x_1,\dots,x_n)),
+		\abs_{G}(H))\btr(\varepsilon, I)$ with $H'\in L_{G}(I)$.
+	\end{proof}
+
+	And secondly the join statement is examined in detail as follows:
+	\begin{lemma}[Overapproximation of Join]
+		For a backward confluent $G\in\HAG$, $H,H'\in\HC$ with
+		$(\text{\textbf{join}}(t),H)\rhd(\varepsilon, H')$
+		it holds that there is $I\in\HCN$ such that
+		$(\text{\textbf{join}}(t),\abs_{G}(H))
+			\btr(\varepsilon,I)$ and $H'\in L_{G}(I)$.
+	\end{lemma}
+	\begin{proof}
+		Let $T_t$ denote the token of identifiers that identify the process $t$
+		and $C=(P_{C}, E_{C}, Q_{C})\in\Cont(m)$ the contract by which the
+		process identified by all $t'\in T_t$ is joined. Let further more denote
+		$C'=(P_{C'}, E_{C'}, \mathbb{Q}_{C'})\in\Cont_{\text{abs}}(m)$ such that
+		$C$ and $C'$ satisfy $(i),(ii),(iii)$. Therefore there is (at least one)
+		$Q_{C'}\in\mathbb{Q}_{C'}$ such that $Q_{C}\in L_{G}(Q_{C'})$. This
+		implies there is a production sequence $\pi$ such that
+		$Q_{C'}\xRightarrow{\pi}Q_{C}$. Furthermore it is clear that there is a
+		production sequence $\lambda$ with $\abs_{G}(H)\xRightarrow{\lambda}H$.
+		Additionally it is $Q_{1}=Q_{C}[\downarrow\enum_{\PI'}(1)]\dots
+		[\downarrow\enum_{\PI'}(|\PI'|)]$ and $Q_{2}=Q_{1}[\setminus
+		(E^{Q^{1}}_{\mathit{RD}}\cup E^{Q_{1}}_{\mathit{RD}^{\ast}})]$, and
+		accordingly $Q_{1}^{\text{abs}}=Q_{C'}[\downarrow\enum_{\PI'}(1)]\dots
+		[\downarrow\enum_{\PI'}(|\PI'|)]$ and
+		$Q_{2}^{\text{abs}}=Q_{1}^{\text{abs}}
+		[\setminus(E^{Q_{2}^{\text{abs}}}_{\mathit{RD}}\cup
+		E^{Q_{2}^{\text{abs}}}_{\mathit{RD^{\ast}}})]$. By argument (I) and
+		because the successively dropped process identifier alternate the
+		permissions in $Q_{C}$ and $Q_{C'}$ the same way (an analogous case is
+		examined in the proof of the overapproximation for the fork statement
+		above) it can be savely assumed that
+		$Q_{1}^{\text{abs}}\xRightarrow{\pi'}Q_{1}$ where $\pi'$ mirrors $\pi$
+		but adapts the permissions of the production rules to fit the permissions
+		of the edges they are adapted to, and furthermore it follows that
+		$E^{Q_{1}}_{\mathit{RD}^{\ast}} = \emptyset$ if and
+		only if $E^{Q_{1}^{\text{abs}}}_{\mathit{RD}^{\ast}}=\emptyset$, since
+		every $e$ with $\mathit{RD}^{\ast}$ in $Q_{1}$ has to arise from an
+		edge with $\mathit{RD}^{\ast}$ permission in $Q_{1}^{\text{abs}}$ and
+		every edge in $Q_{1}^{\text{abs}}$ with an $\mathit{RD}^{\ast}$
+		permission concretises to edges with $\mathit{RD}^{\ast}$ permissions.
+		This implies that the abstract semantics as well as the concrete
+		semantics agree upon which of both production rules is used in both
+		cases.
+		Additionally because the \enquote{write-part} and the \enquote{read-part}
+		of the postcondition can be distinguished by their $\mathit{BasePerm}$
+		and of argument (I) there is a production sequence $\pi''$ which is
+		the same as $\pi'$ restricted to the edges with
+		$\mathit{WR},\mathit{WR}^{\ast}$ permissions ($\pi'' =\pi'\upharpoonright
+		E^{Q_{1}^{\text{abs}}}_{\mathit{WR}}\cup
+		E^{Q_{1}^{\text{abs}}}_{\mathit{WR}^{\ast}}$) such that
+		$Q_{2}^{\text{abs}}\xRightarrow{\pi''}Q_{2}$. Let now in the following
+		$\Delta\in\{\downarrow T_t,\leftarrow T_t\}$ denote the graph
+		transformation which is applied to the heap representation to return the
+		\enquote{read-part} of the postcondition. It is already established that
+		$\abs_{G}(H)\xRightarrow{\lambda}H$. Because both transformations change
+		the permissions in $\abs_{G}(H)$ and $H$ the same way, this implies that
+		there is $\lambda'$ which mirrors $\lambda$ aside the permissions which
+		are adapted to fit the edges the production rules are applied to such
+		that $\abs_{G}(H)[\Delta]\xRightarrow{\lambda'}H[\Delta]$. Let in the
+		following $K\in\HCN$ denote the \emph{\ac{HC}} such that
+		$\abs_{G}[\Delta] \xRightarrow{N_{T_t}\rightarrow Q_{2}^{\text{abs}}} K$
+		holds. And $H'$ is by the definition of the production rules for the
+		concrete semantics (see page \pageref{prooftree:join}) the \emph{\ac{HC}}
+		such that $H[\Delta]\xRightarrow{N_{T_t}\rightarrow Q_{2}} H'$. It
+		follows from the context-freeness and independence of $\pi''$ and
+		$\lambda'$ (i.e. no production rule in $\pi''$ is needed to reveal edges
+		which production rules of $\lambda$ are applied to and vice versa) that
+		$K\xRightarrow{\lambda'} \underbrace{K'}_{\text{intermediate state}}
+			\xRightarrow{\pi''} H'$, where the intermediate step $K'$ is fully
+		concrete in the part around the inserted $Q_{2}^{\text{abs}}$ which is
+		then concretised by $\pi''$.
+		Therefore
+		$K\xRightarrow{\lambda'\pi''}H'$ which implies $H'\in L_{G}(K)$.
+		Finally, because application of abstraction and concretisation yields at
+		least the language of the \emph{\ac{HC}} they are applied to it follows
+		that there is $I\in\rea_{G}(\abs_{G}(K))$ such that $H'\in L_{G}(I)$.
+	\end{proof}
+	At last the overapproximation of the assignment of process identifier is
+	given.
+	\begin{lemma}[Overapproximation of Assignment of Process Identifier]
+		For a backward confluent $G\in\HAG$, $H,H'\in\HC$ with
+		$(t = t',H)\rhd(\varepsilon, H')$
+		it holds that there is $I\in\HCN$ such that
+		$(t = t',\abs_{G}(H))
+			\btr(\varepsilon,I)$ and $H'\in L_{G}(I)$.
+	\end{lemma}
+	\begin{proof}
+		This follows immediatly from argument (I) and because $[t = t']$ operates
+		on the permissions of the concrete \emph{\ac{HC}} as well as the
+		corresponding abstraction the same way.
+	\end{proof}
+	This concludes the proof that $\btr$ is an overapproximation of $\rhd$.
+	$\blacksquare$

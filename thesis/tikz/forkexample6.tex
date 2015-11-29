@@ -1,0 +1,27 @@
+\begin{tikzpicture}[node distance=2 and 2]
+	\node[node] (r)  {};
+	\node[var] (curr) [above=of r] {$\mathit{curr}$};
+	\node[node] (r-l) [below left=of r] {};
+	\node[node, fill=gray!50] (r-r) [below right=of r] {};
+	\node[node, node distance=2 and 1.2] (r-l-l) [below left=of r-l] {};
+	\node[node, node distance=2 and 1.2] (r-l-r) [below right=of r-l] {};
+	\node[node, node distance=2 and 1.2] (r-r-l) [below left=of r-r] {};
+	\node[node, node distance=2 and 0.9] (r-l-l-r) [below right=of r-l-l] {};
+	\node[node, below right=2 and 1 of r-l-r, fill=gray!50] (null) {$v_{\text{null}}$};
+	\node[var] (tmp)  [above right=of r-r] {$\mathit{tmp}$};
+	\node[he] (p) [below right=2 and 1.2 of r-r] {$N_{\{t\}}$};
+	\draw [connector] (tmp) to (r-r);
+	\draw [connector] (curr) to (r);
+	\draw [connector] (p) to (r-r);
+	\draw [connector, bend left] (p) to (null);
+	\draw [sel] (r) to node[left]{$l_{\mathit{WR}}$} (r-l) ;
+	\draw [sel] (r) to node[right]{$r_{\mathit{WR}}$} (r-r);
+	\draw [sel] (r-l) to node[left]{$l_{\mathit{WR}}$} (r-l-l);
+	\draw [sel] (r-l) to node[right]{$r_{\mathit{WR}}$} (r-l-r);
+	\draw [sel] (r-r) to node[right, label={[label distance=0mm]-90:$l_{\mathit{WR}}$}]{} (r-r-l);
+	\draw [sel] (r-l-l) to node[right]{$r_{\mathit{WR}}$} (r-l-l-r);
+	\draw [sel] (r-l-l) to node[above]{$l_{\mathit{WR}}$} (null);
+	\draw [sel] (r-l-r) to node{$(l,r)_{\mathit{WR}}$} (null);
+	\draw [sel] (r-r-l) to node[above right]{$(l,r)_{\mathit{WR}}$} (null);
+	\draw [sel, bend right] (r-l-l-r) to node[below]{$(l,r)_{\mathit{WR}}$} (null);
+\end{tikzpicture}

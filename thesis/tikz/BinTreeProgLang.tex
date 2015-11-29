@@ -1,0 +1,143 @@
+\begin{minipage}{0.5\textwidth}
+	\scalebox{0.64}{
+	\begin{tikzpicture}[node distance=2 and 2]
+		\node[node] (r)  {};
+		\node[var] (curr) [above=of r] {$\mathit{curr}$};
+		\node[node] (r-l) [below left=of r] {};
+		\node[node] (r-r) [below right=of r] {};
+		\node[node, node distance=2 and 1.2] (r-l-l) [below left=of r-l] {};
+		\node[node, node distance=2 and 1.2] (r-l-r) [below right=of r-l] {};
+		\node[node, node distance=2 and 1.2] (r-r-l) [below left=of r-r] {};
+		\node[node, node distance=2 and 1.2] (r-r-r) [below right=of r-r] {};
+		\node[node]                          (r-r-r-r) [below=of r-r-r] {};
+		\node[node, node distance=2 and 0.9] (r-l-l-r) [below right=of r-l-l] {};
+		\node[var] (tmp)  [above right=of r-r] {$\mathit{tmp}$};
+		\node[node, below right=2 and 1 of r-l-r] (null) {$v_{\text{null}}$};
+		\draw [connector] (tmp) to (r-r);
+		\draw [connector] (curr) to (r);
+		\draw [sel] (r) to node[right]{$\mathit{left}$} (r-l) ;
+		\draw [sel] (r) to node[right]{$\mathit{right}$} (r-r);
+		\draw [sel] (r-l) to node[right]{$\mathit{left}$} (r-l-l);
+		\draw [sel] (r-l) to node[right]{$\mathit{right}$} (r-l-r);
+		\draw [sel] (r-r) to node[right]{$\mathit{left}$} (r-r-l);
+		\draw [sel] (r-r) to node[right]{$\mathit{right}$} (r-r-r);
+		\draw [sel] (r-r-r) to node[right]{$\mathit{right}$} (r-r-r-r);
+		\draw [sel] (r-l-l) to node[right]{$\mathit{right}$} (r-l-l-r);
+		\draw [sel] (r-l-l) to node[above]{$\mathit{left}$} (null);
+		\draw [sel] (r-r-r) to node[above]{$\mathit{left}$} (null);
+		\draw [sel] (r-l-r) to node{$\mathit{left},\mathit{right}$} (null);
+		\draw [sel] (r-r-l) to node[above]{$\mathit{left},\mathit{right}$} (null);
+		\draw [sel, bend left] (r-r-r-r) to node[below]{$\mathit{left},\mathit{right}$} (null);
+		\draw [sel, bend right] (r-l-l-r) to node[below]{$\mathit{left},\mathit{right}$} (null);
+
+		\begin{scope}[on background layer]
+			\node [fill=green!30,fit=(r-r) (r-r-r) (r-r-l) (r-r-r-r),label=125:$t$] {};
+		\end{scope}
+	\end{tikzpicture}
+	}
+\end{minipage}%
+\begin{minipage}{0.5\textwidth}
+	\scalebox{0.64}{
+	\begin{tikzpicture}[node distance=2 and 2]
+		\node[node] (r)  {};
+		\node[node] (r-l) [below left=of r] {};
+		\node[var] (curr) [above =of r-l] {$\mathit{curr}$};
+		\node[node] (r-r) [below right=of r] {};
+		\node[node, node distance=2 and 1.2] (r-l-l) [below left=of r-l] {};
+		\node[node, node distance=2 and 1.2] (r-l-r) [below right=of r-l] {};
+		\node[node, node distance=2 and 1.2] (r-r-l) [below left=of r-r] {};
+		\node[node, node distance=2 and 1.2] (r-r-r) [below right=of r-r] {};
+		\node[node]                          (r-r-r-r) [below=of r-r-r] {};
+		\node[node, node distance=2 and 0.9] (r-l-l-r) [below right=of r-l-l] {};
+		\node[var, below=of r-l-r] (tmp) {$\mathit{tmp}$};
+		\draw [connector] (tmp) to (r-l-r);
+		\draw [connector] (curr) to (r-l);
+		\draw [sel] (r) to node[right]{$\mathit{left}$} (r-l);
+		\draw [sel] (r) to node[right]{$\mathit{right}$} (r-r);
+		\draw [sel] (r-l) to node[right]{$\mathit{left}$} (r-l-l);
+		\draw [sel] (r-l) to node[right]{$\mathit{right}$} (r-l-r);
+		\draw [sel] (r-r) to node[right]{$\mathit{left}$} (r-r-l);
+		\draw [sel] (r-r) to node[right]{$\mathit{right}$} (r-r-r);
+		\draw [sel] (r-r-r) to node[right]{$\mathit{right}$} (r-r-r-r);
+		\draw [sel] (r-l-l) to node[right]{$\mathit{right}$} (r-l-l-r);
+
+		\begin{scope}[on background layer]
+			\node [fill=yellow!30,fit=(r-r) (r-r-r) (r-r-l) (r-r-r-r)] {};
+		\end{scope}
+		\begin{scope}[on background layer]
+			\node [fill=green!30,fit=(r-l-r), label=45:$t$] {};
+		\end{scope}
+	\end{tikzpicture}
+	}
+\end{minipage}
+\\[1cm]
+\begin{minipage}{0.5\textwidth}
+	\scalebox{0.6}{
+		\begin{tikzpicture}[node distance=2 and 2]
+			\node[node] (r)  {};
+			\node[node] (r-l) [below left=of r] {};
+			\node[node] (r-r) [below right=of r] {};
+			\node[node, node distance=2 and 1.2] (r-l-l) [below left=of r-l] {};
+			\node[var] (curr) [above =of r-l-l] {$\mathit{curr}$};
+			\node[node, node distance=2 and 1.2] (r-l-r) [below right=of r-l] {};
+			\node[node, node distance=2 and 1.2] (r-r-l) [below left=of r-r] {};
+			\node[node, node distance=2 and 1.2] (r-r-r) [below right=of r-r] {};
+			\node[node]                          (r-r-r-r) [below=of r-r-r] {};
+			\node[node, node distance=2 and 0.9] (r-l-l-r) [below right=of r-l-l] {};
+			\node[var, left=of r-l-l-r] (tmp) {$\mathit{tmp}$};
+			\draw [connector] (tmp) to (r-l-l-r);
+			\draw [connector] (curr) to (r-l-l);
+			\draw [sel] (r) to node[right]{$\mathit{left}$} (r-l);
+			\draw [sel] (r) to node[right]{$\mathit{right}$} (r-r);
+			\draw [sel] (r-l) to node[right]{$\mathit{left}$} (r-l-l);
+			\draw [sel] (r-l) to node[right]{$\mathit{right}$} (r-l-r);
+			\draw [sel] (r-r) to node[right]{$\mathit{left}$} (r-r-l);
+			\draw [sel] (r-r) to node[right]{$\mathit{right}$} (r-r-r);
+			\draw [sel] (r-r-r) to node[right]{$\mathit{right}$} (r-r-r-r);
+			\draw [sel] (r-l-l) to node[right]{$\mathit{right}$} (r-l-l-r);
+
+			\begin{scope}[on background layer]
+				\node [fill=yellow!30,fit=(r-r) (r-r-r) (r-r-l) (r-r-r-r)] {};
+			\end{scope}
+			\begin{scope}[on background layer]
+				\node [fill=yellow!30,fit=(r-l-r)] {};
+			\end{scope}
+			\begin{scope}[on background layer]
+				\node [fill=green!30,fit=(r-l-l-r), label=45:$t$] {};
+			\end{scope}
+		\end{tikzpicture}
+	}
+\end{minipage}%
+\begin{minipage}{0.5\textwidth}
+	\scalebox{0.64}{
+		\begin{tikzpicture}[node distance=2 and 2]
+			\node[node] (r)  {};
+			\node[node] (r-l) [below left=of r] {};
+			\node[node] (r-r) [below right=of r] {};
+			\node[node, node distance=2 and 1.2] (r-l-l) [below left=of r-l] {};
+			\node[var] (curr) [above =of r-l-l] {$\mathit{curr}$};
+			\node[node, node distance=2 and 1.2] (r-l-r) [below right=of r-l] {};
+			\node[node, node distance=2 and 1.2] (r-r-l) [below left=of r-r] {};
+			\node[node, node distance=2 and 1.2] (r-r-r) [below right=of r-r] {};
+			\node[node]                          (r-r-r-r) [below=of r-r-r] {};
+			\node[node, node distance=2 and 0.9] (r-l-l-r) [below left=of r-l-l] {};
+			\draw [connector] (curr) to (r-l-l);
+			\draw [sel] (r) to node[right]{$\mathit{left}$} (r-l);
+			\draw [sel] (r) to node[right]{$\mathit{right}$} (r-r);
+			\draw [sel] (r-l) to node[right]{$\mathit{left}$} (r-l-l);
+			\draw [sel] (r-l) to node[right]{$\mathit{right}$} (r-l-r);
+			\draw [sel] (r-r) to node[right]{$\mathit{left}$} (r-r-l);
+			\draw [sel] (r-r) to node[right]{$\mathit{right}$} (r-r-r);
+			\draw [sel] (r-r-r) to node[left]{$\mathit{right}$} (r-r-r-r);
+			\draw [sel] (r-l-l) to node[right]{$\mathit{left}$} (r-l-l-r);
+
+			\begin{scope}[on background layer]
+				\node [fill=yellow!30,fit=(r-r) (r-r-r) (r-r-l) (r-r-r-r)] {};
+			\end{scope}
+			\begin{scope}[on background layer]
+				\node [fill=yellow!30,fit=(r-l-r)] {};
+			\end{scope}
+		\end{tikzpicture}
+	}
+\end{minipage}
+

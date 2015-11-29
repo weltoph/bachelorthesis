@@ -1,0 +1,53 @@
+\begin{tikzpicture}
+	%graph
+	\node[node] (s1) {};
+	\node[node, below right=of s1] (s3) {};
+	\node[node, node distance=2 and 2, below left =of s3] (s2) {$n$};
+	\node[he, below=of s3] (e3) {$B$};
+
+	\draw[sel] (s1) to node[left ]{$l$} (s2);
+	\draw[sel] (s1) to node[right]{$r$} (s3);
+	\draw[connector] (e3) to node[above]{2} (s2);
+	\draw[connector] (e3) to node[right]{1} (s3);
+
+	%rhs of production rule:
+	\node[node, below=of e3, ext] (v1) {1};
+	\node[node, below left=of v1] (v2) {};
+	\node[node, below right=of v1] (v3) {};
+	\node[he, below=of v2] (e1) {$B$};
+	\node[he, below=of v3] (e2) {$B$};
+	\node[node, left=of e1, ext] (v4) {2};
+
+	\draw[sel] (v1) to node[left ]{$l$} (v2);
+	\draw[sel] (v1) to node[right]{$r$} (v3);
+	\draw[connector] (e1) to node[right]{1} (v2);
+	\draw[connector] (e1) to node[above]{2} (v4);
+	\draw[connector, bend left] (e2) to node[above]{2} (v4);
+	\draw[connector] (e2) to node[right]{1} (v3);
+
+	%connection
+	\draw[dashed, ->, bend right=45] (v1) to (s3);
+	\draw[dashed, ->, bend left=45]  (v4) to (s2);
+
+	%leadsto symbol
+	\node[above right=1.2cm and 0.2cm of v3] {$\Rightarrow$};
+
+	%result
+	\node[node] (null) [right=of v3] {$n$};
+	\node[he] (e1) [right=of null] {$B$};
+	\node[node, above=of e1] (root-right-left) {};
+	\node[node, above right=1cm and 0.5cm of root-right-left](root-right){};
+	\node[node, below right=1cm and 0.5cm of root-right](root-right-right){};
+	\node[node, above left=of root-right] (root) {};
+	\node[he, below=of root-right-right] (e2) {$B$};
+
+	\draw[sel] (root) to node[right]{$r$} (root-right);
+	\draw[sel] (root) to node[left ]{$l$} (null);
+	\draw[sel] (root-right) to node[left ]{$l$} (root-right-left);
+	\draw[sel] (root-right) to node[right]{$r$} (root-right-right);
+	\draw[connector] (e1) to node[left ]{1} (root-right-left);
+	\draw[connector] (e2) to node[right]{1} (root-right-right);
+	\draw[connector] (e1) to node[above]{2} (null);
+	\draw[connector, bend left] (e2) to node[above]{2} (null);
+
+\end{tikzpicture}

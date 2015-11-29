@@ -1,0 +1,18 @@
+\begin{tikzpicture}
+	\node (p) {$p:$};
+	\node[he, right=0.1cm of p] (lhs) {$B$};
+	\node[node, right=3.5cm of lhs] (v2) {};
+	\node[node, above right=of v2, ext] (v1) {1};
+	\node[node, below right=of v1] (v3) {};
+	\node[he, below=of v2] (e1) {$B$};
+	\node[he, below=of v3] (e2) {$B$};
+	\node[node, left=of e1, ext] (v4) {2};
+
+	\draw[very thick, ->, shorten >=2.2cm, shorten <=7pt] (lhs) to (v2);
+	\draw[sel] (v1) to node[left ]{$l$} (v2);
+	\draw[sel] (v1) to node[right]{$r$} (v3);
+	\draw[connector] (e1) to node[right]{1} (v2);
+	\draw[connector] (e1) to node[above]{2} (v4);
+	\draw[connector, bend left] (e2) to node[above]{2} (v4);
+	\draw[connector] (e2) to node[right]{1} (v3);
+\end{tikzpicture}

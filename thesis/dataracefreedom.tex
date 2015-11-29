@@ -1,0 +1,219 @@
+\section{Data Race Freedom}
+	The main result of incorporating permissions into the heap representation
+	is to avoid data races. This section proves the absence of dataraces for
+	valid executions, i.e. executions that does not yield a $\bot$ symbol.
+	To improve the readability some considerations are given up front:
+	\begin{enumerate}
+		\item Edges are only altered if the permission of this edge is
+			$\mathit{WR}$ as it can be easily seen from the transition rules on
+			page \pageref{transitionrules}.
+		\item Selectors can only be read if the corresponding edge is present in
+			the representation of the heap, which follows likewise from the
+			transition rules on page \pageref{transitionrules}
+		\item Let $\Tok(H) = \{ T \mid \text{T is a token and either }\exists
+				e\in E_{H}.\perm_{H}(e)=\rho-\Phi \land T\in\Phi
+			\text{ or }\exists e'\in E_{H}.\lab_{H}(e')=N_{T}\}$ denote the set
+			of all tokens in $H$. The set of tokens is called \emph{consistent}
+			if they are all disjoint and all process identifier in a token refer
+			to the same process.
+		\item $\mathit{BasePerms}$ that are once starred can never be
+			\enquote{un-starred} again which satisfies to drop accounting for
+			permissions with starred $\mathit{BasePerms}$ (as it can be seen
+			in the property \textbf{Derived Tickets} only not starred permissions
+			are examined).
+	\end{enumerate}
+	\subsection{Proof Obligation}
+	It is shown by induction of the transition relation that for every
+	\emph{\ac{HC}} $H$ of the transition system described by $\rhd$ holds:
+	\begin{description}
+		\item[Consistency of Tokens] that $\Tok(H)$ is consistent
+		\item[Uniqueness of Access] that there is only one process for which the
+			$\mathit{BasePerm}$ of an edge in the heap representation is
+			$\mathit{WR}$ or $\mathit{WR}^{\ast}$, i. e. write access is always
+			transferred completely
+		\item[Derived Tickets] that all derived tickets for read access for edges
+			with a $\mathit{BasePerm}$ that is either $\mathit{WR}$ or
+			$\mathit{RD}$ are properly accounted in the $\mathit{PermSet}$, where
+			properly accounted means that for every derived ticket the token of
+			the process is given in the $\mathit{PermSet}$
+	\end{description}
+	For this induction only the fork and join statement as well as the
+	allocation and assignment of process identifier is examined, because all
+	other statements cannot alter any permission or placeholder.
+
+	Let as induction hypothesis for all following proofs $H$ be a heap
+	representation which satisfies \textbf{Consistency of Tokens} and
+	\textbf{Uniqueness of Access} and \textbf{Derived Tickets}.
+	\begin{proof}[Allocation]
+		For $(\text{new}(x), H)\rhd(\varepsilon,
+		\underbrace{H[+v][x\hookrightarrow v]}_{H'})$ it holds that there
+		are new edges for used selector attached to the node $v$. All these edges
+		cannot accessed by any other process other than
+		the current one. Therefore $H'$ satisfies \textbf{Uniqueness of Access}.
+		Furthermore $H'$ satisfies \textbf{Consistency of Tokens} by induction
+		hypothesis and because no new tokens are added. Since for the new
+		selectors no access tickets are yet derived the empty $\mathit{PermSet}$
+		is a proper accounting, yielding \textbf{Derived Tickets}.
+	\end{proof}
+
+	\begin{proof}[Assignment of Process Identifier]
+		For $(t = t', H)\rhd(\varepsilon, H[t = t'])$ it holds that $H[t = t']$
+		satisfies \textbf{Consistency of Tokens} because $[t = t']$ implicitly
+		contains $[\downarrow t]$ which ensures, that $t$ is removed from all
+		tokens and afterwards it is added to the token that refers to the process
+		$t'$ refers to (by induction hypothesis there is one unique token
+		$T_{t'}$ to which $t$ is added).
+
+		Additionally, \textbf{Uniqueness of Access} follows immediatly from the
+		induction hypothesis since it is only possible that $\mathit{BasePerms}$
+		are starred but no access tickets are somehow transferred between
+		processes.
+		
+		And finally, \textbf{Derived Tickets} holds because analogous to the
+		argumentation of \textbf{Consistency of Tokens} the $\mathit{BasePerm}$
+		of all permission for which no proper accounting can be guaranteed, i.e.
+		those for which the access ticket was represented by $\{t\}$, are
+		starred (since this derived ticket can never be regained). For the others
+		the proper accounting follows inherently from the induction hypothesis
+		and because the tokens referring to the different processes are
+		consistent (\textbf{Consistency of Tokens}).
+	\end{proof}
+
+	\begin{proof}[Fork]
+		For\\[-\baselineskip] $(t = fork(m(x_{1},\dots,x_{n})), H)\rhd
+		(\varepsilon, \overbrace{H[\downarrow t][\setminus E_{C}]
+		[+_{\mathit{WR}}N_{\{t\}}\rightrightarrows
+		\enum_{b_{C}(H)}][(E_{P_{C}}\setminus E_{C})-\{t\}]}^{H'})$
+		let $C = (P_{C}, E_{C}, Q_{C})\in\Cont(m)$ be the contract by which the
+		new process is forked.
+		
+		\textbf{Consistency of Tokens} is ensured for
+		$H'$ because again $[\downarrow t]$ ensures that $t$ is removed from all
+		used tokens and therefore $\{t\}$ can be added safely by the introduction
+		of the placeholder $N_{\{t\}}$ and $[(E_{P_{C}}\setminus E_{C})-\{t\}]$.
+		Note further that $\{t\}$ is a consistent token since $t$ is the only
+		process identifier referring to the newly forked process. Futhermore by
+		the definition of the initial heap state it satisfies \textbf{Consistency
+		of Tokens} as well since all its permissions are simple at the
+		beginning which implies an empty set of tokens.
+
+		\textbf{Uniqueness of Access} can be assured because by the
+		definition of how the initial heap state is obtained it follows that only
+		for edges from $E_{C}$ the permission is $\mathit{WR}$ (for all others
+		the permission is $\mathit{RD}$). Since
+		$E_{C}\subseteq E^{P_{C}}_{\mathit{WR}}$ by the
+		premise for contracts and because $H$ satisfies
+		\textbf{Uniqueness of Access} the transformation $[\setminus E_{C}]$
+		ensures \textbf{Uniqueness of Access} for $H'$ because the edges for
+		which the initial heap state has $\mathit{WR}$ access are removed for
+		$H'$. Furthermore this argument also yields \textbf{Uniqueness of Access}
+		for the initial heap state of the forked process as well.
+
+		It can also be seen that $H'$ satisfies \textbf{Derived Tickets} since
+		for all $e\in E_{H[\downarrow t]}$ with a $\mathit{BasePerm}$ that is
+		either $\mathit{WR}$ or $\mathit{RD}$ \textbf{Consistency of Tokens}
+		ensures a proper accounting of the derived access tickets. And
+		all reachable edges are either removed $[\setminus E_{C}]$ or the token
+		$\{t\}$ is added which accounts the the newly derived access ticket for
+		all reachable edges that are not removed.
+		Concludingly, $H'$ satisfies \textbf{Derived Tickets}. Also for the
+		initial heap state all $\mathit{PermSets}$ are empty and because there
+		is not yet any derived ticket for the initial heap state it also
+		satisfies \textbf{Derived Tickets}.
+	\end{proof}
+
+	\begin{proof}[Join]
+		For $(\text{join}(t), H)\rhd(\varepsilon,H')$
+		let $C = (P_{C}, E_{C}, Q_{C})$ denote the contract by which the joined
+		process was forked intially. Furthermore it holds that\\ $Q_{1} = Q_{C}
+		[\downarrow\mathit{enum}_{\mathit{Var}'_{\text{thread}}}(1)]\dots
+		[\downarrow\mathit{Var}'_{\text{thread}}
+		(|\mathit{Var}'_{\text{thread}}|)]$ and $Q_{2} = Q'_{1}[\setminus
+		(E^{Q'_{1}}_{\mathit{RD}}\cup E^{Q'_{1}}_{\mathit{RD^{\ast}}})]$.
+		It is shown for the fork statement that the initial heap state of
+		forked processes satisfies \textbf{Consistency of Tokens},
+		\textbf{Uniqueness of Access} and \textbf{Derived Tickets}.
+		It is stated that for contracts $Q_{C}$ is obtained by a valid
+		execution from the initial heap state. This valid execution implies
+		preservation of \textbf{Consistency of Tokens},
+		\textbf{Uniqueness of Access} and \textbf{Derived Tickets},
+		thus $Q_{C}$ satisfies these properties. Furthermore after having dropped
+		all process identifier ($[\downarrow t']$ for all $t'\in \PI'$) it can be
+		assured that $\Tok(Q_{1}) = \emptyset$ which is therefore consistent.
+		Additionally since from $Q_{1}$ to $Q_{2}$ only edges are removed it
+		follows that $\Tok(Q_{2}) = \emptyset$ which is also consistent.
+		Also \textbf{Uniqueness of Access}
+		is preserved for $Q_{1}$ and $Q_{2}$ because all $\mathit{BasePerms}$ can
+		only alter from $\mathit{WR}$ to $\mathit{WR}^{\ast}$ or from
+		$\mathit{RD}$ to $\mathit{RD}^{\ast}$ for every $[\downarrow t]$
+		transformation. Therefore because $Q_{C}$
+		satisfies \textbf{Uniqueness of Access} so do $Q_{1}$ and especially
+		$Q_{2}$. Also, because those edges that preserve an unstarred
+		$\mathit{BasePerm}$ through the dropping of all process identifier must
+		have had an empty $\mathit{PermSet}$ before and therefore the permission
+		did not change from $Q_{C}$. Therefore $Q_{1}$ inherently satisfies
+		\textbf{Derived Tickets} and because $Q_{2}$ is a subgraph of $Q_{1}$ it
+		does too.
+
+		Distinguish two cases in the following: firstly
+		$E^{Q_{1}}_{\mathit{RD}^{\ast}}\neq\emptyset$, which implies that
+		$H[\downarrow T_{t}]\xRightarrow{N_{T_{t}}\rightarrow Q_{2}}H'$. Then
+		$H'$ satisfies \textbf{Consistency of Tokens} because the token $T_{t}$
+		is removed from the token set (by successively dropping $t'\in T_{t}$ and
+		replacing the placeholder $N_{T_{t}}$ by $Q_{2}$) and the corresponding
+		process terminated.  Furthermore, integrating $Q_{2}$ does not add any
+		token (recall that $\Tok(Q_{2}) = \emptyset$).
+
+		\textbf{Uniqueness of Access} can be assured because $Q_{C}$ satisifes
+		\textbf{Uniqueness of Access} and thus, integrating those edges with
+		$\mathit{BasePerm}$ $\mathit{WR}$ or $\mathit{WR}^{\ast}$ into $H$ hands
+		over the write ticket to $H$. The write ticket was unique before and
+		since the process that hands the write ticket over terminated it is
+		unique afterwards.
+
+		For \textbf{Derived Tickets} it is noteworthy that it cannot be
+		guaranteed that all derived access tickets are completely returned since
+		there is at least one edge $e\in E^{Q_{1}}_{\mathit{RD^{\ast}}}$ (thus
+		this edge can potentially be accessed concurrently by a process and this
+		process can never be joined since the refernce to it is lost). Because
+		the initial heap state is only provided with $\mathit{WR}$ or
+		$\mathit{RD}$ permission this implies a loss of information regarding the
+		accounting in the forked process.
+		This loss of information propagates strictly by dropping the token that
+		identifies the derived access ticket. This ensures a proper accounting
+		since those permissions from which this access ticket was derived are
+		starred (more precisely their $\mathit{BasePerm}$). Furthermore for the
+		\enquote{WR-part} \textbf{Derived Tickets} is shown above which concludes
+		that $H'$ satisfies \textbf{Derived Tickets}.
+
+		Secondly, examine the case that
+		$E^{Q_{1}}_{\mathit{RD}^{\ast}}=\emptyset$ such that
+		$H[\downarrow T_{t}]\xRightarrow{N_{T_{t}}\rightarrow Q_{2}}H'$:
+		it follows analogous to the first case that $H'$ satisfies
+		\textbf{Consistency of Tokens} and \textbf{Uniqueness of Access}. For
+		the \textbf{Derived Tickets} it is important that the whole access ticket
+		is returned because since $Q_{C}$ satisfies \textbf{Derived Tickets} the
+		empty $\mathit{PermSet}$ for the permissions with $\mathit{RD}$ as
+		$\mathit{BasePerm}$ guarantees that in the execution every granted access
+		ticket is completely recollected (in other words there is no process
+		directly or indirectly\footnote{since in the given setup process
+		can only be joined by the process that forked them, there is a distinct
+		predecessor relationship between processes. Indirectly forked refers to
+		any process which is in the transitive closure of the predecessor
+		relationship to the examined process}
+		forked from the joined process that can access these edges). 
+		This means the granted access ticket (represented as
+		$\mathit{RD}$ permissions in the initial heap state) are completely
+		returned and it follows, because the \enquote{WR-part} satisfies
+		\textbf{Derived Tickets} that $H'$ satisfies \textbf{Derived Tickets}.
+	\end{proof}
+
+	Concludingly, this induction yields data race freedom by the following
+	argument: Because proper accounting for all edges with a permission that has
+	a $\mathit{BasePerm}$ of $\mathit{WR}$ or $\mathit{RD}$ is guaranteed
+	(\textbf{Derived Tickets}) it follows that any derived access ticket from
+	this permission restricts to read access (by the definition of the
+	transition rules). A permission of $\mathit{WR}$ guarantees exclusive access
+	because it meets the condition for proper accounting of \textbf{Derived
+	Tickets}, thus its empty $\mathit{PermSet}$ ensures that no other process
+	an access this value concurrently.  $\blacksquare$

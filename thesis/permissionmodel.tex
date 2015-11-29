@@ -1,0 +1,161 @@
+\section{Permission Model}
+	\label{sec:pm}
+	As stated above it is locally accounted for which process a selector is
+	accessible. The main goal of the analysis is to state that the execution
+	of a program is \emph{data race free}. Where data race refers to the
+	situation that two processes access a shared value at the same time and at
+	least one of the processes alters the value. This implies a dependency of
+	both actions with each other. For a proper analysis all interleaving have
+	to be examined (see \cite[pp. 77-80]{PrinciplesOfModelChecking} for
+	details). \emph{Data race freedom} describes the absence of data races which
+	can be guaranteed as long the following two conditions are
+	met\footnote{this can be easily derived from the explanation of safe
+		concurrency in \cite{SeparationLogic}}:
+	\begin{itemize}
+		\label{itemize:invariants}
+		\item If two or more parallel processes access a value it must not be
+			altered.
+		\item If one process alters a value it must have at this time exclusive
+			access to it.
+	\end{itemize}
+	The accounting is realised in form of \emph{permissions}. Permissions are
+	used to model access restrictions in order to ensure
+	\begin{enumerate*}[label=(\arabic*)]
+		\item that write access is exclusive and
+		\item that if other processes might access the same value at the same
+			time both are restricted to read access.
+	\end{enumerate*}
+	Permissions were already introduced for other modelling techniques for heaps
+	like \emph{separation logic} \cite{SeparationLogic}. There different models
+	for permissions are examined like \emph{fractional permissions} or
+	\emph{counting permissions}. All these models share the property that there
+	is one distinguishable permission representing exclusive access on a value.
+	From this access ticket for one value multiple other access tickets on this
+	value can be derived which then causes all these accesses to become read
+	only. Furthermore derived access tickets can be returned until there exists
+	only one access tickets which then again grants permission to alter the
+	given value.
+	For fractional permission it is possible that once derived
+	tickets can be split indefinitly on demand to generate as many access
+	tickets as needed. On the other hand for counting permissions there is one
+	distinguishable permission per value from which further access tickets are
+	derived. Every derived access ticket is accounted for and can be returned to
+	this distinguishable permission.
+	In the following course an approach is chosen which is closer
+	connected with \cite{FractionalPermissions} and combines both presented
+	concepts of \emph{fractional permissions} and \emph{counting permissions}
+	and formalises ideas from \cite{NollJansenDraft}.
+
+	Fundamentally two different \emph{permissions} are distinguished:
+	\begin{itemize}
+		\item $\mathit{WR}$ - denotes that this value can be altered.
+		\item $\mathit{RD}$ - denotes a shared access, which restricts to
+			reading only.
+	\end{itemize}
+	These permissions represent access rights where $\mathit{WR}$ is the
+	distinguishable value representing exclusive access. From both permissions
+	it is possible to derive further access tickets which are locally
+	accounted and deleted if these tickets are returnded. Therefore
+	the different forked processes are uniquely identified and this
+	identification is used to account derived access tickets. Additionally it is
+	possible to transfer $\mathit{WR}$ tickets completely. For the
+	identification of forked processes the programming language relies on values
+	from $\PI$. As it can be seen from the grammar of the programming language
+	it is possible that
+	multiple process identifiers from $\PI$ can refer to the same actual process
+	as it can be easily seen by the following example:
+	\begin{lstlisting}
+$t_{1}$ = fork(traverse($\mathit{tmp}$));
+$t_{2} = t_{1}$;
+join($t_{2}$)
+	\end{lstlisting}
+	Here $t_{1}$ and $t_{2}$ refer to the same forked process. The join
+	statement takes any of these possible process identifier to synchronise with
+	the corresponding process. In order to account permissions
+	given to processes \emph{tokens} are introduced. Tokens are sets of $\PI$
+	which refer to the same process. Thus, for every token $T$ always holds that
+	$T\subseteq \PI$ and the set of all possible tokens is simply the powerset
+	of the process identifiers ($\mathbb{P}(\PI)$). For every shared value
+	the permission that it held initially is kept as well as a set of tokens
+	that represent all derived tickets to the process that can access this
+	value. Recall that variables and process identifiers are considered process
+	exclusive and only heap objects and selectors can be shared. Furthermore the
+	presented analysis focuses on structural analysis of the heap and therefore
+	only consideres selectors as data of heap objects.
+	
+	In order to formalises these ideas \emph{\acp{PE}} are introduced in
+	the following. These consist of a so called $\mathit{BasePerm}$ which
+	represents the \emph{permission} that was originally granted and a set of
+	tokens for derived permissions.
+
+	For an example consider Figure \ref{fig:BinTreeProgLangPerm}, which mirrors
+	the previous example from Figure \ref{fig:BinTreeProgLang} but added
+	permissions to the selectors. Imagine all selectors are initially equipped
+	with a $\mathit{WR}$ permission. For the part of the heap that the newly
+	forked process may access the token $\{t\}$ is added to the permissions.
+	\begin{figure}
+	\begin{center}\input{tikz/BinTreeProgLangPerm}\end{center}
+		\caption{State of the first iteration of the heap shown in Figure
+			\ref{fig:BinTreeProgLang} with additional permissions on every
+		selector, empty $\mathit{PermSets}$ are omitted, $\mathit{left}$ and
+		$\mathit{right}$ are shortened to $l$ and $r$ respectively. For two
+		selectors that are represented by one edge the permission for those is
+		written only once.}
+		\label{fig:BinTreeProgLangPerm}
+	\end{figure}
+	As already observed in the second iteration of the example from Figure
+	\ref{fig:BinTreeProgLang} the information if a process still operates on a
+	certain part of the heap is lost. Especially it is impossible to retrieve
+	any information of the status of the once forked process because the
+	synchronisation mechanism (join statement) demands an identifier referring
+	to the process which no longer exists. In this case the derived access
+	tickets are considered permanently lost. In order to model this for
+	permissions two additional $\mathit{BasePerm}$ besides
+	$\mathit{WR},\mathit{RD}$ are introduced: $\mathit{WR^{\ast}}$ and
+	$\mathit{RD^{\ast}}$ which indicate that the initially granted permission
+	can never be fully returned since the information about any parallel
+	executing processes is lost. The following definition formalises these
+	observations:
+	\begin{definition}[Permission Expression]
+		A \emph{\acl{PE}} is a term of the form
+		$$\mathit{BasePerm} - \mathit{PermSet}$$
+		where $\mathit{BasePerm}\in
+		\{\mathit{WR},\mathit{WR^\ast},\mathit{RD},\mathit{RD^\ast}\}$.
+		And $\mathit{PermSet}\subseteq\mathbb{P}(\PI)$.
+	\end{definition}
+	For convenience an empty $\mathit{PermSet}$ and a $\mathit{PermSet}$
+	after $\mathit{RD^\ast}$ or $\mathit{WR^\ast}$ as $\mathit{BasePerm}$ might
+	be omitted if it is clear from the context that this information is not
+	needed.  Sometimes for a $\mathit{BasePerm}$ $\rho$ and a $\mathit{PermSet}$
+	$\Phi$ and $T\in\mathbb{P}(\PI)$
+	$\rho - \Phi - T$ is written for $\rho - \Phi\cup\{T\}$.
+	In addition a \emph{\ac{PE}} with an empty $\mathit{PermSet}$ is called
+	\emph{simple}. The set of all \emph{\acp{PE}} over $\PI$ is denoted by
+	$\mathit{PES}_{\PI}$. Note that for a finite set $\PI$ $\mathit{PES}_{\PI}$
+	is finite as well.
+
+	For now it was always considered that the process only reads the part of the
+	heap it has access to. But as it is introduced later on there also will be a
+	way to specify for a process that it might alter certain selectors. In order
+	to model that this part of the heap must not be accessed anymore because the
+	access ticket is completely submitted to the forked process. This is
+	achieved by substituting this part of the heap that might be altered by a
+	placeholder.
+	This placeholder ``hides'' parts of the heap so it can not be accessed.
+	Upon joining this process again the placeholder is additionally used to
+	identifiy where the part of the heap to which the access ticket is
+	transferred to is returned.
+	For the program from Listing \ref{lst:ExampleProgram} consider that the
+	forked process might demand write access on the right subtree of its
+	parameter. Then the substitution of this subtree by a placeholder can be
+	seen in Figure \ref{fig:BinTreeProgLangPermReplacement}. Note that the
+	placeholder is connected to the node which can still be accessed from the
+	original heap but is also the node that the parameter of $\mathit{traverse}$
+	pointed to and to the \textbf{null} node.
+	\begin{figure}
+	\begin{center}\input{tikz/BinTreeProgLangPermReplacement}\end{center}
+		\caption{State of the first iteration of the heap shown in figure
+			\ref{fig:BinTreeProgLang} with permissions as well as partially
+		substitution with a placeholder.}
+		\label{fig:BinTreeProgLangPermReplacement}
+	\end{figure}

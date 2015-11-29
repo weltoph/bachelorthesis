@@ -1,0 +1,16 @@
+\begin{tikzpicture}
+	\node[node] (v1) {};
+	\node[node, below left =2cm and 2cm of v1] (v2) {};
+	\node[node, below right=2cm and 2cm of v1] (v3) {};
+	\node[node, below left =2cm and 1cm of v3] (v4) {};
+	\node[node, below right=2cm and 1cm of v3] (v5) {};
+
+	\draw[sel] (v1) to node[left] {$l_{\mathit{WR}}$}           (v2);
+	\draw[sel] (v1) to node[right]{$r_{\mathit{WR}}$}           (v3);
+	\draw[sel] (v3) to node[left] (t1) {$l_{\mathit{WR}-\{\{t\}\}}$} (v4);
+	\draw[sel] (v3) to node[right](t2) {$r_{\mathit{WR}-\{\{t\}\}}$} (v5);
+
+		\begin{scope}[on background layer]
+			\node [fill=blue!50,fit=(v3) (v4) (v5) (t1) (t2)] {};
+		\end{scope}
+\end{tikzpicture}

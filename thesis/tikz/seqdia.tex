@@ -1,0 +1,23 @@
+\begin{tikzpicture}
+	\node[rectangle, draw] (m) {\underline{Main}};
+	\node[rectangle, draw, minimum width=0.5cm, minimum height=5cm, below=0.5 of m] (am) {};
+	\node[rectangle, draw, below right=1 and 1 of m, minimum width=1.2cm] (p1) {\underline{$P_1$}};
+	\node[rectangle, draw, below left=2 and 1 of m, minimum width=1.2cm] (p2) {\underline{$P_2$}};
+	\node[rectangle, draw, below right=of p1, minimum width=1.2cm, minimum height=0.7cm] (other) {\dots};
+	\node[rectangle, draw, minimum width=0.5cm, minimum height=2cm, below=0.5 of p1] (p1m) {};
+	\node[circle, cross out, below=0.5 of p1m, minimum width=0.5cm, draw, minimum height=0.5cm] (p1e) {};
+	\node[rectangle, draw, minimum width=0.5cm, minimum height=1.5cm, below=0.5 of p2] (p2m) {};
+	\node[circle, cross out, below=0.5 of p2m, minimum width=0.5cm, draw, minimum height=0.5cm] (p2e) {};
+	\node[below=0.3cm of am] (me) {};
+
+	\draw[dashed] (m) to (am);
+	\draw[->] ([yshift=1.67cm]am.east) to node[above]{\small fork} (p1);
+	\draw[->] ([yshift=0.67cm]am.west) to node[above]{\small fork} (p2);
+	\draw[->] ([yshift=0.16cm]p1m.east) to node[above]{\small fork} (other);
+	\draw[dashed] (p1) to (p1m);
+	\draw[dashed] (p1m.south) to (p1e.center);
+	\draw[dashed] (p2) to (p2m);
+	\draw[dashed] (p2m.south) to (p2e.center);
+	\draw[->] (p1e.center) to node[above]{\small join} ([yshift=0.57cm]am.south east);
+	\draw[dashed] (am) to (me);
+\end{tikzpicture}

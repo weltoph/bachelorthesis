@@ -1,0 +1,16 @@
+\begin{tikzpicture}
+	\node[var] (curr) {$\mathit{curr}$};
+	\node[node, below=of curr] (v1) {$1$};
+	\node[node, below left=of v1] (v2) {};
+	\node[node, below right=of v1] (v3) {};
+	\node[he, below=of v3, label=0:{$\mathit{WR}$}] (e1) {$B$};
+	\node[node, below=2.44 and 2 of v1] (null) {$v_{\text{null}}$};
+
+	\draw[sel] (v1) to node[left] {$l_{\mathit{WR}}$} (v2);
+	\draw[sel] (v1) to node[right]{$r_{\mathit{WR}}$} (v3);
+	\draw[connector] (v3) to node[right]{$1$} (e1);
+	\draw[connector] (e1) to (null);
+	\draw[connector] (curr) to (v1);
+	\draw[sel, bend left] (v2) to node[right]{$l_{\mathit{WR}}$} (null);
+	\draw[sel, bend right] (v2) to node[left]{$r_{\mathit{WR}}$} (null);
+\end{tikzpicture}

@@ -1,0 +1,94 @@
+\section{Hypergraphs as Heap Representation}
+	In order to formalise the intuitive graph representation from the examples
+	above \emph{\acp{HG}} are introduced in the following. This follows the
+	general approach presented in \cites{LocalGreibachNormalForm}
+	{InductivePredicates}{InformalGraphGrammars}{fmsd}. Intuitively, an
+	\emph{\ac{HG}} is the same as a normal graph, it consists of a set of nodes
+	and edges, but an edge in an \emph{\ac{HG}} is called hyperedge and can
+	connect arbitrarily many nodes instead of only two. Furthermore the used
+	\emph{\acp{HG}} will be labeled, thus there is a function $\lab$ which
+	assigns a label to every hyperedge. The possible labels come from a set
+	$\Sigma$.  Then an \emph{\ac{HG}} can be formally defined as follows:
+	\begin{definition}[Hypergraph]
+		Let $\Sigma$ be a set of labels and let $V$ be a finite
+		set of nodes, $E$ a finite set of edges.
+		$\con: E\rightarrow V^{*}$ maps every edge to the sequence of
+		connected nodes, $\lab: E\rightarrow\Sigma$ labels every edge.
+		Further let $ext\in V^{*}$ denote a possibly empty
+		sequence ($\varepsilon$) of nodes and $\perm: E\rightarrow \PES$. An
+		\emph{\ac{HG}} $H$ is a tupel
+		\begin{equation*}
+			H=(V, E, \con, \lab, \ext, \perm)
+		\end{equation*}
+	\end{definition}
+	The set of all hyperedges with the labels $\Sigma$ and process identifier 
+	$\PI$ is denoted by $\HG$. Two \emph{\acp{HG}} are called \emph{isomorphic}
+	if they are equivalent modulo renaming of edges and nodes. Isomorphic
+	\emph{\acp{HG}} are not distinguished in the following.
+
+	In order to represent states of the heap the objects in the heap will be
+	represented as nodes. Variables are represented by hyperedges that are
+	only connected to the node that represents the value of the variable. Such
+	a hyperedge that is connected to only one node is called \emph{unary}.
+	Selectors are modelled as binary hyperedges between nodes, which are
+	interpreted as directed from the first node of the connection sequence to
+	the second one. Furthermore parts that are given away to other processes
+	are substituted by hyperedges. For the hyperedges that represent parts of
+	the heap for which access tickets are transferred a set of labels is
+	introduced as
+	\begin{equation*}
+		\mathbb{T} = \{N_{T} \mid T\in\mathbb{P}(\PI)\}
+	\end{equation*}
+	States of the heap can now be represented as $H\in\HG$ where
+	$\Sigma = \Var\uplus\Sel\uplus\mathbb{T}$, but of course not all those
+	\emph{\ac{HG}} $H$ represent valid heaps because it is e.g. possible that
+	every object might have multiple outgoing edges labeled with the same
+	selector. Thus some restrictions are enforced in order to represent valid
+	states of a heap which are called \emph{\acp{HC}}, namely:
+	\begin{itemize}
+		\item There is exactly one distinguishable node $v_{\text{null}}$
+			representing the \textbf{null} value. $v_{\text{null}}$ has no
+			outgoing selectors.
+		\item There is exactly one unary hyperedge for every variable.
+		\item Edges labeled by a selector are binary hyperedges.
+		\item For every node there is at most one outgoing edge per
+			selector.
+	\end{itemize}
+	Note that every object is universally typed. Thus, all objects have
+	initially an outgoing edge for every selector. But of course some of these
+	edges
+	can be \enquote{hidden} within a hyperedge representing parts of the heap
+	for which $\mathit{WR}$ permissions are transferred to another process. As
+	it is possible that the reference to the process that operates exclusively
+	on the selectors is lost, these selectors can permanently be removed from
+	the heap state.
+	This leads to the following formal definition for \emph{\acp{HC}}:
+	\begin{definition}[Heap Configuration]
+		A \emph{\acl{HG}}\\
+		$H = (V, E, \mathit{con}, \mathit{lab}, \mathit{ext}, \mathit{perm}) \in
+		\HG$ is called a \emph{\acl{HC}} if
+		\begin{itemize}
+			\item $\Sigma = \mathit{Var}\biguplus\mathit{Sel}\biguplus \mathbb{T}$
+			\item $v_{\text{null}}\in V$ and
+				$\nexists e\in E.\lab_{H}(e)\in\Sel\land
+				\con_{H}(e)(1)=v_{\text{null}}$
+			\item $|\con_{H}(e)| = 1$ for all $e\in E$ with $\lab_{H}(e)\in
+				\mathit{Var}$
+			\item $|\con_{H}(e)| = 2$ for all $e\in E$ with $\lab_{H}(e)\in
+				\mathit{Sel}$
+			\item $\forall v\in\mathit{Var}.\exists e\in E. \lab_{H}(e) = v$
+			\item $\forall v\in\mathit{Var}, e,e'\in E.
+				v = \lab_{H}(e) = \lab_{H}(e') \rightarrow e = e'$
+			\item $\forall s\in\mathit{Sel}, e,e'\in E.
+				\con_{H}(e)(1) = \con_{H}(e')(1) \land
+				s = \lab_{H}(e) = \lab_{H}(e') \rightarrow e = e'$
+		\end{itemize}
+	\end{definition}
+	The set of all \emph{\ac{HC}} over $\Sigma$ and
+	$\PI$ is denoted by $\HC$.
+
+	Furthermore the following notion is defined for $\rho\in\PES$ which
+	collects all edges of the \ac{HG} with permission $\rho$:
+	\begin{equation*}
+		E^{H}_{\rho} = \{e\in E_{H}\mid\perm_{H}(e) = \rho\}
+	\end{equation*}

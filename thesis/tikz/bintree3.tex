@@ -1,0 +1,18 @@
+\begin{tikzpicture}
+	\node[node] (v1) {};
+	\node[node, below left= of v1] (v2) {};
+	\node[node, below right=of v1] (v3) {};
+	\node[node, below right=1 and 0.5 of v2] (v4) {};
+	\node[node, below left=1 and 0.5 of v2] (v5) {};
+	\node[below left=1 and 0.5 of v5] (dots1) {};
+	\node[below right=1 and 0.5 of v4] (dots2) {};
+	\node[below=1 and 0.5 of v3] (dots3) {};
+
+	\draw[sel] (v1) to node[left] {$l$} (v2);
+	\draw[sel] (v1) to node[right]{$r$} (v3);
+	\draw[sel] (v2) to node[left] {$l$} (v5);
+	\draw[sel] (v2) to node[right] {$r$} (v4);
+	\draw[loosely dotted, very thick, shorten >= 0.2cm, shorten <= 0.2cm] (v5) to (dots1);
+	\draw[loosely dotted, very thick, shorten >= 0.2cm, shorten <= 0.2cm] (v4) to (dots2);
+	\draw[loosely dotted, very thick, shorten >= 0.2cm, shorten <= 0.2cm] (v3) to (dots3);
+\end{tikzpicture}

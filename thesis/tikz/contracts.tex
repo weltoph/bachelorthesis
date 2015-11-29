@@ -1,0 +1,13 @@
+\begin{tikzpicture}
+  \coordinate (abs) at (0,0);
+  \coordinate (conc) at (6,0);
+  \draw[blue!60, fill=blue!60, rounded corners=0.8mm] (abs) \irregularcircle{1cm}{1.5mm};
+  \draw[red!70, fill=red!70, rounded corners=0.6mm] (abs) \irregularcircle{0.5cm}{1.2mm};
+
+  \draw[blue!60, fill=blue!60, rounded corners=.9mm] (conc) \irregularcircle{1.7cm}{1.8mm};
+  \draw[red!70, fill=red!70, rounded corners=.7mm] (conc) \irregularcircle{0.9cm}{1.5mm};
+
+  \draw[->, thick, shorten <= 1.7cm, shorten >= 2cm, bend right] (abs) to node[above]{$\mathit{conc}$} (conc);
+  \draw[->, thick, shorten <= 2cm, shorten >= 1.7cm, bend right] (conc) to node[below]{$\abs$} (abs);
+\end{tikzpicture}
+

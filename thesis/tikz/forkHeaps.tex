@@ -1,0 +1,24 @@
+\begin{tikzpicture}[node distance=3cm]
+	%states
+	\node [textnode] (P) {Precondition};
+	\node [textnode, below=of P] (R) {Reachable Subgraph};
+	\node [textnode, right=of P] (I) {Initial Heap State};
+	\node [textnode] (Q) at (R-|I)   {Postcondition};
+	%cong
+	\node [below=1.5cm and 1.5cm of P] {$\cong$};
+
+	\begin{scope}[on background layer]
+		\node [fill=yellow!50, fit=(P) (R), label={90:forking process ($\HG$):}] {};
+		\node [fill=green!30,  fit=(I) (Q), label={90:forked  process ($\mathit{HG}^{\PI'}_{\Sigma'}$):}] {};
+	\end{scope}
+
+	%computation
+	\draw [very thick,->, decorate,
+	decoration={snake,amplitude=.7mm, segment length=4mm, post length=2mm}]
+	(I) to node[left, text width=1.8cm]{Execution} node[right, text width=2cm]{(with respect to alternable set)}(Q);
+	\draw [very thick,->, decorate,
+	decoration={snake,amplitude=.7mm, segment length=4mm, post length=2mm}]
+	(P) to node[above]{Transformation} (I);
+
+	
+\end{tikzpicture}

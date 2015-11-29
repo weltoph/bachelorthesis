@@ -1,0 +1,10 @@
+\begin{tikzpicture}
+	\node[node] (v1) {$1$};
+	\node[node, below left= of v1] (v2) {};
+	\node[node, below right=of v1] (v3) {};
+	\node[var, above=of v1] (curr) {$\mathit{curr}$};
+
+	\draw[connector] (curr) to (v1);
+	\draw[sel] (v1) to node[left] {$l_{\mathit{WR}}$} (v2);
+	\draw[sel] (v1) to node[right]{$r_{\mathit{WR}}$} (v3);
+\end{tikzpicture}

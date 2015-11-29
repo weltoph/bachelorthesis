@@ -1,0 +1,13 @@
+\begin{tikzpicture}
+	\node[he] (lhs) {$L$};
+	\node[node, ext, right=1cm and 2cm of lhs] (v1) {$1$};
+	\node[he, right=of v1] (e) {$L$};
+	\node[node, right=of e] (v2) {};
+	\node[node, ext, right=of v2] (v3) {$2$};
+	
+	\draw[->,very thick, shorten >=0.2cm, shorten <=0.2cm] (lhs) to (v1);
+	\draw[sel, bend left] (v2) to node[above]{$\mathit{next}$} (v3);
+	\draw[sel, bend left] (v3) to node[below]{$\mathit{prev}$} (v2);
+	\draw[connector] (e) to node[above]{$1$} (v1);
+	\draw[connector] (e) to node[above]{$2$} (v2);
+\end{tikzpicture}

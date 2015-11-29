@@ -1,0 +1,24 @@
+\section{Preliminaries}
+	For a set $S$, $S^{*}$ are all finite sequences of elements from $S$.
+	For such a sequence $s\in S^{*}$ the number of elements is denoted by $|s|$
+	and the set of elements of the sequence is denoted by $\Lbag s\Rbag$.
+	Furthermore $s(i)$ refers to the $i$-th element of the sequence $s$.
+	For a tupel $A = (B,C,D,...)$ for the single components
+	$B_A,C_A,D_A,...$ is used as long as $A$ is clear from the context.
+	Additionally, a function restricted to a subset $A$ of its domain is denoted
+	by $f\upharpoonright{A}$.
+	Functions defined for a set $V$ are lifted to the sequence
+	$V^{*}$ and the power set $\mathbb{P}(V)$ by elementwise application.
+	For a finite set $A$ the function $\enum_{A}:|A|\rightarrow A$ returns an
+	enumeration of the elements of $A$.
+	And finally, for a function $f$ $f[e\mapsto v]$describes a function that
+	mirrors $f$ except for $e$ where it maps to $v$, i.e. for an
+	$e\in\mathit{dom}(f)$ and $v\in\mathit{img}(f)$ 
+	\begin{equation*}
+		f[e\mapsto v](x) =
+		\begin{cases}
+			v &\text{if } x = e\\
+			f(x) &\text{otherwise}\\
+		\end{cases}
+	\end{equation*}
+

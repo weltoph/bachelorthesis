@@ -1,0 +1,15 @@
+\begin{tikzpicture}
+	\node[node]                (v3) {$v_{3}$};
+	\node[node, above left =of v3] (v1) {$v_{1}$};
+	\node[node, below left =of v3] (v2) {$v_{2}$};
+	\node[node, above right=of v3] (v4) {$v_{4}$};
+	\node[node, below right=of v3] (v5) {$v_{5}$};
+
+	\draw[sel]            (v1) to node[above, label=-90:{$e_{1}$}]{$p$} (v3);
+	\draw[sel]            (v3) to node[above, label={[label distance=-0.3cm]-45:
+		{$e_{2}$}}]{$p$} (v2);
+	\draw[sel]            (v4) to node[above, label={[label distance=-0.3cm]-45:
+		{$e_{3}$}}]{$p$} (v3);
+	\draw[sel, bend left] (v2) to node[above, label=-90:{$e_{4}$}]{$p$} (v5);
+	\draw[sel, bend left] (v5) to node[below, label=90:{$e_{5}$}]{$p$} (v2);
+\end{tikzpicture}
